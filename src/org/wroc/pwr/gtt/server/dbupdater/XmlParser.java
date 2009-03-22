@@ -61,10 +61,10 @@ public class XmlParser {
 
 						String typ = line.getAttributes().getNamedItem("typ").getNodeValue();
 						// update DB - typ
-						ResultSet s = stmt.executeQuery("SELECT count(*) from typ where typ = '" + typ + "'");
+						ResultSet s = stmt.executeQuery("SELECT count(*) from Typ where typ = '" + typ + "'");
 						s.next();
 						if (s.getInt(1) == 0)
-							stmt.executeUpdate("INSERT INTO typ (typ)" + " VALUES('" + typ + "')");
+							stmt.executeUpdate("INSERT INTO Typ (typ)" + " VALUES('" + typ + "')");
 
 						NodeList versionNodes = line.getChildNodes();
 						for (int k = 0; k < versionNodes.getLength(); k++) {
@@ -74,8 +74,8 @@ public class XmlParser {
 								String wariant_id = version.getAttributes().getNamedItem("id").getNodeValue();
 
 								// update DB - LINIA
-								stmt.executeUpdate("INSERT INTO linia (linia_nazwa, wariant_id, wariant_nazwa, typ_id, wazny_od, wazny_do)" + " VALUES('"
-										+ linia_nazwa + "', '" + wariant_id + "', '" + wariant_nazwa + "', " + "(SELECT typ_id from typ where typ='" + typ
+								stmt.executeUpdate("INSERT INTO Linia (linia_nazwa, wariant_id, wariant_nazwa, typ_id, wazny_od, wazny_do)" + " VALUES('"
+										+ linia_nazwa + "', '" + wariant_id + "', '" + wariant_nazwa + "', " + "(SELECT typ_id from Typ where typ='" + typ
 										+ "'), " + wazny_od + ", " + wazny_do
 
 										+ ")");
@@ -89,10 +89,10 @@ public class XmlParser {
 										String ulica = stop.getAttributes().getNamedItem("ulica").getNodeValue();
 										String cechy = stop.getAttributes().getNamedItem("cechy").getNodeValue();
 										// update DB - przystanek
-										s = stmt.executeQuery("SELECT count(*) from przystanek where zdik_id = '" + zdik_id + "'");
+										s = stmt.executeQuery("SELECT count(*) from Przystanek where zdik_id = '" + zdik_id + "'");
 										s.next();
 										if (s.getInt(1) == 0)
-											stmt.executeUpdate("INSERT INTO przystanek (zdik_id, przyst_nazwa, ulica, cechy)" + " VALUES('" + zdik_id + "', '"
+											stmt.executeUpdate("INSERT INTO Przystanek (zdik_id, przyst_nazwa, ulica, cechy)" + " VALUES('" + zdik_id + "', '"
 													+ przyst_nazwa + "', '" + ulica + "', '" + cechy + "')");
 										// ///////////////
 										NodeList tabNodes = stop.getChildNodes();
@@ -107,10 +107,10 @@ public class XmlParser {
 												String dzien = "";
 												if (day.getNodeName().equals("dzien")) {
 													dzien = day.getAttributes().getNamedItem("nazwa").getNodeValue();
-													s = stmt.executeQuery("SELECT count(*) from dzien where dzien_nazwa = '" + dzien + "'");
+													s = stmt.executeQuery("SELECT count(*) from Dzien where dzien_nazwa = '" + dzien + "'");
 													s.next();
 													if (s.getInt(1) == 0)
-														stmt.executeUpdate("INSERT INTO dzien (dzien_nazwa)" + " VALUES('" + dzien + "')");
+														stmt.executeUpdate("INSERT INTO Dzien (dzien_nazwa)" + " VALUES('" + dzien + "')");
 
 												}
 												NodeList hourNodes = day.getChildNodes();
@@ -131,14 +131,14 @@ public class XmlParser {
 																// rozklad
 
 																stmt
-																		.executeUpdate("INSERT INTO rozklad (linia_id, przyst_id, nr_przyst, godzina, minuta, dzien_id)"
+																		.executeUpdate("INSERT INTO Rozklad (linia_id, przyst_id, nr_przyst, godzina, minuta, dzien_id)"
 																				+ " VALUES("
-																				+ "(SELECT linia_id from linia where linia_nazwa = '"
+																				+ "(SELECT linia_id from Linia where linia_nazwa = '"
 																				+ linia_nazwa
 																				+ "' AND wariant_id = '"
 																				+ wariant_id
 																				+ "'),"
-																				+ "(SELECT przyst_id FROM przystanek where zdik_id = '"
+																				+ "(SELECT przyst_id FROM Przystanek where zdik_id = '"
 																				+ zdik_id
 																				+ "')"
 																				+ ", '"
@@ -148,7 +148,7 @@ public class XmlParser {
 																				+ ", "
 																				+ minuta
 																				+ ", "
-																				+ "(SELECT dzien_id from dzien where dzien_nazwa = '" + dzien + "')" + ")");
+																				+ "(SELECT dzien_id from Dzien where dzien_nazwa = '" + dzien + "')" + ")");
 																if (min.getAttributes().getLength() > 2) {
 																	String ozn = removeBegSpeces(min.getAttributes().getNamedItem("ozn").getNodeValue());
 																	String przyp = removeBegSpeces(min.getAttributes().getNamedItem("przyp").getNodeValue());
@@ -161,20 +161,20 @@ public class XmlParser {
 																		for (int oznl = 0; oznl < ozn.length(); oznl++) {
 
 																			tabprzyp[oznl] = removeBegSpeces(tabprzyp[oznl]);
-																			s = stmt.executeQuery("SELECT count(*) from przypis where przyp = '"
+																			s = stmt.executeQuery("SELECT count(*) from Przypis where przyp = '"
 																					+ tabprzyp[oznl] + "'");
 																			s.next();
 																			if (s.getInt(1) == 0)
-																				stmt.executeUpdate("INSERT INTO przypis (przyp_ozn, przyp)" + " VALUES('"
+																				stmt.executeUpdate("INSERT INTO Przypis (przyp_ozn, przyp)" + " VALUES('"
 																						+ ozn.charAt(oznl) + "', '" + tabprzyp[oznl] + "')");
-																			s = stmt.executeQuery("SELECT count(*) from oznaczenie where stop_id = (SELECT stop_id from rozklad order by stop_id desc limit 1) and przyp_id = "
-																					+ "(SELECT przyp_id from przypis where przyp = '" + tabprzyp[oznl] + "')");
-																					
+																			s = stmt.executeQuery("SELECT count(*) from Oznaczenie where stop_id = (SELECT stop_id from Rozklad order by stop_id desc limit 1) and przyp_id = "
+																					+ "(SELECT przyp_id from Przypis where przyp = '" + tabprzyp[oznl] + "')");
+
 																			s.next();
 																			if (s.getInt(1) == 0)
-																			stmt.executeUpdate("INSERT INTO oznaczenie (stop_id, przyp_id)" + " VALUES("
-																					+ "(SELECT stop_id from rozklad order by stop_id desc limit 1), "
-																					+ "(SELECT przyp_id from przypis where przyp = '" + tabprzyp[oznl] + "'))");
+																			stmt.executeUpdate("INSERT INTO Oznaczenie (stop_id, przyp_id)" + " VALUES("
+																					+ "(SELECT stop_id from Rozklad order by stop_id desc limit 1), "
+																					+ "(SELECT przyp_id from Przypis where przyp = '" + tabprzyp[oznl] + "'))");
 
 																		}
 
