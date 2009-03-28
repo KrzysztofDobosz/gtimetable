@@ -2,8 +2,9 @@ package org.wroc.pwr.gtt;
 
 import java.util.ArrayList;
 
-import org.wroc.pwr.gtt.server.dbupdater.DBconnector;
+import org.wroc.pwr.gtt.server.DBconnector;
 import org.wroc.pwr.gtt.server.dbupdater.TTdownloader;
+import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
 
 public class Main {
 
@@ -23,15 +24,16 @@ public class Main {
 	
 		long start=System.currentTimeMillis();
 		ArrayList<String> xmlFiles;
-		//TTdownloader.download(url, archName);
+		TTdownloader.download(url, archName);
 		xmlFiles = TTdownloader.unzip(archName, dir);
-		DBconnector connector = new DBconnector();
-		
-		connector.updateDB(driver, dbhost, dbName, userName, pasword, xmlFiles);
-		
-		long time = System.currentTimeMillis() - start;
-		System.out.println("wykonano w " + time/1000 + "s");
-		
-		
+		DBconnector connector = new DBconnector(driver, dbhost, dbName, userName, pasword);
+		connector.updateDB(xmlFiles);
+		GttGraph graph = connector.loadGraph();
+		System.out.println("loaded graph");
+		System.out.println("wierzcholkow: " + graph.vertexSet().size());
+		System.out.println("krawedzi: " + graph.edgeSet().size());
+		long t=System.currentTimeMillis();
+		System.out.println("rozpoczêto: " + (t -start)/1000);
+		graph.findCourse(2,487, 14, 10);
 	}
 }
