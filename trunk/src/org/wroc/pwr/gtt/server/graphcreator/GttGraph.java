@@ -1,5 +1,6 @@
 package org.wroc.pwr.gtt.server.graphcreator;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.alg.KShortestPaths;
 import org.jgrapht.graph.DirectedWeightedMultigraph;
 import org.jgrapht.graph.Subgraph;
+import org.wroc.pwr.gtt.server.DBconnector;
 
 public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 
@@ -16,18 +18,14 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 		super(WEdge.class);
 	}
 
-	public void addWEdge(int p1, int p2, int linia, int waga, int waga2, int typ) {
-		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setTyp(typ), waga);
+	public void addWEdge(DBconnector bconnector, int p1, int p2, int linia, int waga, int waga2, int typ) {
+		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setTyp(typ).setDB(bconnector), waga);
 	}
 
-	public void findCourse(int typ, int p1, int p2, int amount) {
-		Set<WEdge> subEset = new HashSet<WEdge>();
-
-		
-
+	public void findCourse(int typ, int p1, int p2, int amount) {		
 		GttGraph g = (GttGraph) this.clone();
 		for (WEdge w : edgeSet()) {
-			if (!(w.typ == typ || w.typ == 1))
+			if (!(w.typ<=typ))
 				g.removeEdge(w);
 		}
 		System.out.println(g.vertexSet().size());

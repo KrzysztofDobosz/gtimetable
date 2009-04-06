@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.wroc.pwr.gtt.server.dbupdater.XmlParser;
 import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
@@ -29,6 +30,26 @@ public class DBconnector {
 		this.dbName = dbName;
 		this.userName = userName;
 		this.pasword = pasword;
+		try {
+			Class.forName(driver).newInstance();
+			conn = DriverManager.getConnection(host + dbName, userName, pasword);
+			stmt = conn.createStatement();
+			stmt.execute("use gtt");
+			ResultSet rs;
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 
 	}
 
@@ -44,24 +65,28 @@ public class DBconnector {
 			while (rs.next())
 				graph.addVertex(rs.getInt("przyst_id"));
 
-			rs = stmt.executeQuery("Select * from Graf");
+			rs = stmt.executeQuery("Select graf_id, ps_id, pe_id, linia_id, waga,graf.typ_id, wariant_id from Graf join Linia using(linia_id) where wariant_id<3");
 			System.out.println("loaded sql");
 
 			while (rs.next()) {
 				if (rs.getInt("waga") == 0)
-					graph.addWEdge(rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5), rs.getInt(6));
+					graph.addWEdge(this,rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5), rs.getInt(6));
 				else
 
-					graph.addWEdge(rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5), rs.getInt(6));
+					graph.addWEdge(this,rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5), rs.getInt(6));
 
 			}
+	
+		} catch (SQLException e) {
+			e.printStackTrace();
 		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -71,9 +96,7 @@ public class DBconnector {
 	public void updateDB(ArrayList<String> fileList) {
 
 		try {
-			Class.forName(driver).newInstance();
-			conn = DriverManager.getConnection(host + dbName, userName, pasword);
-			stmt = conn.createStatement();
+			
 			String[] createStatement = readFileAsString("create.sql").split("\\n");
 			for (int i = 0; i < createStatement.length; i++) {
 				System.out.println(createStatement[i]);
@@ -81,6 +104,7 @@ public class DBconnector {
 			}
 			ResultSet s;
 			stmt.execute("use gtt");
+			//stmt.executeUpdate("INSERT INTO Dzien (dzien_id, dzien_nazwa)" + " VALUES('" + 0 + "', 'NONE')");
 			stmt.executeUpdate("INSERT INTO Typ (typ_id, typ_nazwa)" + " VALUES('0','Przejscie do innego przystanku')");
 			stmt.executeUpdate("INSERT INTO Linia (linia_nazwa, wariant_id, wariant_nazwa, typ_id)VALUES('X', '0', '0','1')");
 
@@ -132,5 +156,96 @@ public class DBconnector {
 		}
 		reader.close();
 		return fileData.toString();
+	}
+	
+	public String getPrzystNazwa(int przyst_id){
+		String nazwa=null;
+		try {
+			ResultSet s= stmt.executeQuery("Select przyst_nazwa from Przystanek where przyst_id='" + przyst_id +"'");
+			while(s.next())
+				nazwa = s.getString(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return nazwa;
+		
+	}
+	public String getLiniaNazwa(int linia_id){
+		String nazwa=null;
+		try {
+			ResultSet s= stmt.executeQuery("Select linia_nazwa from Linia where linia_id='" + linia_id +"'");
+			while(s.next())
+				nazwa = s.getString(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return nazwa;
+		
+	}
+	
+	public int getPrzystId(String nazwa){
+		int id=-1;
+		try {
+			stmt.execute("use gtt");
+			ResultSet s= stmt.executeQuery("Select przyst_id from Przystanek where przyst_nazwa like('%" + nazwa +"%') limit 1");
+			while(s.next())
+				id = s.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return id;
+		
+	}
+	public int getLiniaId(String nazwa){
+		int id=-1;
+		try {
+			stmt.execute("use gtt");
+			ResultSet s= stmt.executeQuery("Select linia_id from Linia where linia_nazwa='" + nazwa +"' limit 1");
+			while(s.next())
+				id = s.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return id;
+		
+	}
+	public ArrayList<String> getRoute(int linia_id){
+		ArrayList<String> list = new ArrayList<String>();
+		
+			try {
+				stmt.execute("use gtt");
+				ResultSet s = stmt.executeQuery("select distinct linia_nazwa, linia_id, przyst_nazwa from rozklad join (select linia_id, linia_nazwa from linia where linia_id='" + linia_id + "') as l using(linia_id) join przystanek using(przyst_id);");
+				while (s.next()){
+					list.add(s.getString(3));
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+		
+		return list;
+	}
+	
+	public HashMap<String, ArrayList<String>> getTimeTable(int przyst_id, int linia){
+		HashMap<String, ArrayList<String>> timeTable = new HashMap<String, ArrayList<String>>();
+		try {
+			stmt.execute("use gtt");
+			ResultSet s = stmt.executeQuery("select przyst_nazwa,linia_nazwa, linia_id, dzien_nazwa, dzien_id, czas from rozklad join (select linia_id, linia_nazwa from linia where linia_id='" + linia + "') as l using(linia_id) join (select przyst_id, przyst_nazwa from przystanek where przyst_id='" + przyst_id + "') as p using(przyst_id) join dzien using(dzien_id);");
+			while (s.next()){
+				if (!timeTable.containsKey(s.getString("dzien_nazwa"))){
+					timeTable.put(s.getString("dzien_nazwa"), new ArrayList<String>());
+				}
+				else{
+					timeTable.get(s.getString("dzien_nazwa")).add(s.getString("czas"));
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return timeTable ;
+		
 	}
 }
