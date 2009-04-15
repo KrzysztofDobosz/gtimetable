@@ -44,6 +44,7 @@ public class XmlParser {
 					Node line = lineNodes.item(i);
 					if (line.getNodeName().equals("linia")) {
 						String linia_nazwa = line.getAttributes().getNamedItem("nazwa").getNodeValue();
+						linia_nazwa= linia_nazwa.replaceAll(" ", "");
 						System.out.print("LINIA " + linia_nazwa + " ...");
 						long start = System.currentTimeMillis();
 						String wazny_od = line.getAttributes().getNamedItem("wazny_od").getNodeValue();
@@ -153,9 +154,9 @@ public class XmlParser {
 
 																		String[] tabprzyp = przyp.split(";");
 
-																		if (!ozn.equals(" ")) {
+																		if (!przyp.equals("")) {
 
-																			for (int oznl = 0; oznl < ozn.length(); oznl++) {
+																			for (int oznl = 0; oznl < tabprzyp.length; oznl++) {
 
 																				tabprzyp[oznl] = removeBegSpeces(tabprzyp[oznl]);
 																				s = stmt.executeQuery("SELECT count(*) from Przypis where przyp = '"
@@ -163,7 +164,7 @@ public class XmlParser {
 																				s.next();
 																				if (s.getInt(1) == 0)
 																					stmt.executeUpdate("INSERT INTO Przypis (przyp_ozn, przyp)" + " VALUES('"
-																							+ ozn.charAt(oznl) + "', '" + tabprzyp[oznl] + "')");
+																							+ przyp.charAt(oznl) + "', '" + tabprzyp[oznl] + "')");
 																				s = stmt
 																						.executeQuery("SELECT count(*) from Oznaczenie where stop_id = (SELECT stop_id from Rozklad order by stop_id desc limit 1) and przyp_id = "
 																								+ "(SELECT przyp_id from Przypis where przyp = '"
