@@ -28,8 +28,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 			if (!(w.typ<=typ))
 				g.removeEdge(w);
 		}
-		System.out.println(g.vertexSet().size());
-		System.out.println(g.edgeSet().size());
+		if (g.containsVertex(p1) && g.containsVertex(p2)){
 		KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(g, p1, amount);
 		ArrayList<GraphPath<Integer, WEdge>> a = new ArrayList<GraphPath<Integer, WEdge>>();
 
@@ -39,6 +38,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 			for (int i = 0; i < a.size(); i++)
 				System.out.println(a.get(i).getEdgeList() + " " + a.get(i).getWeight() + " " + CComparator.edgeWeight(a.get(i).getEdgeList()));
 		} else
-			System.out.println("brak po³¹czenia");
+			System.out.println("brak po³¹czenia");}
+		else System.out.println("brak przystanku w bazie");
 	}
 }
