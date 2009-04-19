@@ -4,7 +4,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.jgrapht.GraphPath;
-
+/**
+ * Comparator do poprawnego sortowania wyników wyszukiwania po³aczen po grafie;
+ * Najpierw wzglêdem iloœci przesiadek, nastepnie wzgledem odleg³oœci przystankowej.
+ * @author Micha³ Brzeziñski-Spiczak
+ *
+ * @param <T>
+ */
 public class CComparator<T> implements Comparator<T> {
 	public int compare(Object obj1, Object obj2) {
 		GraphPath<Integer, WEdge> emp1 = (GraphPath<Integer, WEdge>) obj1;

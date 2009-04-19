@@ -17,6 +17,14 @@ import java.util.List;
 import org.wroc.pwr.gtt.server.dbupdater.XmlParser;
 import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
 
+/**
+ * Klasa odpowiedzialna za ca³oœæ po³¹czenia z baz¹ danych - od nawi¹zania
+ * po³¹czania, przez wype³nienie bazy dancyh po wszelki dostêp do samych danych
+ * za spraw¹ odpowiednich metod
+ * 
+ * @author Micha³ Brzeziñski
+ * 
+ */
 public class DBconnector {
 	Connection conn = null;
 	XmlParser parser = new XmlParser();
@@ -28,6 +36,16 @@ public class DBconnector {
 	String userName;
 	String pasword;
 
+	/**
+	 * Konstruktor DBconnector przyjmuj¹cy parametry po³¹czenia JDBC i
+	 * nawiazuj¹cy po³¹czenie z baz¹
+	 * 
+	 * @param driver
+	 * @param host
+	 * @param dbName
+	 * @param userName
+	 * @param pasword
+	 */
 	public DBconnector(String driver, String host, String dbName, String userName, String pasword) {
 		this.driver = driver;
 		this.host = host;
@@ -56,38 +74,13 @@ public class DBconnector {
 
 	}
 
-	public void findCourse(int typ, int p1, int p2, int amount) {
-		loadGraph().findCourse(typ, p1, p2, amount);
-	}
-
-	private GttGraph loadGraph() {
-		GttGraph graph = new GttGraph();
-
-		try {
-			
-			ResultSet rs = stmt.executeQuery("Select przyst_id from Przystanek");
-			while (rs.next())
-				graph.addVertex(rs.getInt("przyst_id"));
-
-			rs = stmt
-					.executeQuery("Select graf_id, ps_id, pe_id, linia_id, waga,graf.typ_id, wariant_id from Graf join Linia using(linia_id) where wariant_id<3");
-			System.out.println("loaded sql");
-
-			while (rs.next()) {
-				if (rs.getInt("waga") == 0)
-					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5), rs.getInt(6));
-				else
-
-					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5), rs.getInt(6));
-
-			}
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return graph;
-	}
+	/**
+	 * Metoda aktualizuj¹ca-wype³niaj¹ca bazê danych na podstawie plików XML z
+	 * rozk³adami
+	 * 
+	 * @param fileList
+	 *            - lista lokalizacji plików xml
+	 */
 
 	public void updateDB(ArrayList<String> fileList) {
 
@@ -155,6 +148,61 @@ public class DBconnector {
 		return fileData.toString();
 	}
 
+	/**
+	 * Metoda wyszukuj¹ca po³¹czenie miêdzy dwoma przystankami p1 i p2; linie
+	 * ograniczone do typu typ (wg id z bazy 2- tylko normalne, 3-normalne i
+	 * pospieszne... do uzupe³nienia na switchu nocne itp); amount - z¹dana
+	 * iloœæ po³¹czeñ,
+	 * 
+	 * @param typ
+	 * @param p1
+	 * @param p2
+	 * @param amount
+	 */
+	public void findCourse(int typ, int p1, int p2, int amount) {
+		loadGraph().findCourse(typ, p1, p2, amount);
+	}
+
+	/**
+	 * Metoda wczytuj¹ca strukturê grafu z bazy danych
+	 * 
+	 * @return
+	 */
+	private GttGraph loadGraph() {
+		GttGraph graph = new GttGraph();
+
+		try {
+
+			ResultSet rs = stmt.executeQuery("Select przyst_id from Przystanek");
+			while (rs.next())
+				graph.addVertex(rs.getInt("przyst_id"));
+
+			rs = stmt
+					.executeQuery("Select graf_id, ps_id, pe_id, linia_id, waga,graf.typ_id, wariant_id from Graf join Linia using(linia_id) where wariant_id<3");
+			System.out.println("loaded sql");
+
+			while (rs.next()) {
+				if (rs.getInt("waga") == 0)
+					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5), rs.getInt(6));
+				else
+
+					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5), rs.getInt(6));
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return graph;
+	}
+
+	/**
+	 * Zwraca nazwe przystanku o zadanym id
+	 * 
+	 * @param przyst_id
+	 * @return
+	 */
 	public String getPrzystNazwa(int przyst_id) {
 		String nazwa = null;
 		try {
@@ -168,6 +216,12 @@ public class DBconnector {
 
 	}
 
+	/**
+	 * Zwraca nazwê lini o zadanym id
+	 * 
+	 * @param linia_id
+	 * @return
+	 */
 	public String getLiniaNazwa(int linia_id) {
 		String nazwa = null;
 		try {
@@ -181,6 +235,12 @@ public class DBconnector {
 
 	}
 
+	/**
+	 * zwraca jeden, losowy id przystanku o zadanej nazwie
+	 * 
+	 * @param nazwa
+	 * @return
+	 */
 	public int getPrzystId(String nazwa) {
 		int id = -1;
 		try {
@@ -195,11 +255,17 @@ public class DBconnector {
 
 	}
 
+	/**
+	 * zwraca id lini o zadanej nazwie (wariant 1)
+	 * 
+	 * @param nazwa
+	 * @return
+	 */
 	public int getLiniaId(String nazwa) {
 		int id = -1;
 		try {
 			stmt.execute("use gtt");
-			ResultSet s = stmt.executeQuery("Select linia_id from Linia where linia_nazwa='" + nazwa + "' limit 1");
+			ResultSet s = stmt.executeQuery("Select linia_id from Linia where linia_nazwa='" + nazwa + "' and wariant_id=1 limit 1");
 			while (s.next())
 				id = s.getInt(1);
 		} catch (SQLException e) {
@@ -209,6 +275,13 @@ public class DBconnector {
 
 	}
 
+	/**
+	 * zwraca listê id przystanków w kolejnoœci pokonywania na zadanej po id
+	 * lini
+	 * 
+	 * @param linia_id
+	 * @return
+	 */
 	public ArrayList<Integer> getTrasa(int linia_id) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 
@@ -226,6 +299,14 @@ public class DBconnector {
 		return list;
 	}
 
+	/**
+	 * zwraca rozk³ad danej lini z zadanego przystanku - struktura tablicy
+	 * hashuj¹cej dzien_id->lista<czas>
+	 * 
+	 * @param przyst_id
+	 * @param linia
+	 * @return
+	 */
 	public HashMap<Integer, ArrayList<Time>> getRozklad(int przyst_id, String linia) {
 		HashMap<Integer, ArrayList<Time>> timeTable = new HashMap<Integer, ArrayList<Time>>();
 		try {
@@ -251,6 +332,11 @@ public class DBconnector {
 
 	}
 
+	/**
+	 * Zwraca nazwy linii z podzia³em na typu hashmapa typ_id-> lista nazw
+	 * 
+	 * @return
+	 */
 	public HashMap<Integer, ArrayList<String>> getLinie() {
 		HashMap<Integer, ArrayList<String>> lines = new HashMap<Integer, ArrayList<String>>();
 		try {
@@ -270,6 +356,12 @@ public class DBconnector {
 		return lines;
 	}
 
+	/**
+	 * zwraca nazwê typu wzglêdem id
+	 * 
+	 * @param typ_id
+	 * @return
+	 */
 	public String getTypNazwa(int typ_id) {
 		String typ_nazwa = null;
 		try {
@@ -287,6 +379,12 @@ public class DBconnector {
 		return typ_nazwa;
 	}
 
+	/**
+	 * zwraca nazwê wariantu wzglêdem id lini
+	 * 
+	 * @param linia_id
+	 * @return
+	 */
 	public String getWariantNazwa(int linia_id) {
 		String typ_nazwa = null;
 		try {
@@ -304,6 +402,12 @@ public class DBconnector {
 		return typ_nazwa;
 	}
 
+	/**
+	 * zwraca listê wariantów danej linii wzglêdem nazwy
+	 * 
+	 * @param linia_nazwa
+	 * @return
+	 */
 	public ArrayList<String> getWarianty(String linia_nazwa) {
 		ArrayList<String> warianty = new ArrayList<String>();
 
@@ -322,6 +426,12 @@ public class DBconnector {
 		return warianty;
 	}
 
+	/**
+	 * zwraca wspó³rzêdne przystaneku wzglêdem id
+	 * 
+	 * @param przyst_id
+	 * @return
+	 */
 	public Coordinates getWspolrzedne(int przyst_id) {
 		Coordinates wsp = null;
 		try {
@@ -339,6 +449,16 @@ public class DBconnector {
 		return wsp;
 	}
 
+	/**
+	 * zwraca najbizszy zadanemu czasowi (start) wyjazd danej linii (linia_id) z
+	 * zadanego przystanku (przyst_id) w zadanyc dzien (dzien_id(
+	 * 
+	 * @param przyst_id
+	 * @param linia_id
+	 * @param dzien_id
+	 * @param start
+	 * @return
+	 */
 	public ArrayList<Time> getNearest(int przyst_id, int linia_id, int dzien_id, Time start) {
 
 		ArrayList<Time> time = new ArrayList<Time>();
@@ -357,12 +477,21 @@ public class DBconnector {
 		}
 		return time;
 	}
-	
-	public ArrayList<Integer> getChanges(int przyst_id){
+
+	/**
+	 * zwraca mozliwe przesiadki (lista id lini) z zadanego przystanku lub
+	 * przystanków o tej samej nazwie (tzn. w najbli¿szej okolicy)
+	 * 
+	 * @param przyst_id
+	 * @return
+	 */
+	public ArrayList<Integer> getChanges(int przyst_id) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		try {
 			stmt.execute("use gtt");
-			ResultSet s = stmt.executeQuery("Select distinct linia_id from Rozklad join (select przyst_id from Przystanek where przyst_nazwa=(select przyst_nazwa from Przystanek where przyst_id='"+ przyst_id+"')) as p using(przyst_id)");
+			ResultSet s = stmt
+					.executeQuery("Select distinct linia_id from Rozklad join (select przyst_id from Przystanek where przyst_nazwa=(select przyst_nazwa from Przystanek where przyst_id='"
+							+ przyst_id + "')) as p using(przyst_id)");
 			while (s.next()) {
 				list.add(s.getInt("linia_id"));
 			}

@@ -19,15 +19,12 @@ import java.util.zip.ZipFile;
 
 
 import com.sun.jmx.snmp.Timestamp;
-
+/**
+ * Klasa stanowiaca downloader oraz unzipper do archiwum rozk³adów
+ * @author Micha³ Brzeziñski-Spiczak
+ *
+ */
 public class TTdownloader {
-
-
-	/**
-	 * @param args
-	 */
-
-
 
 	final static int size = 1024;
 

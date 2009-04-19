@@ -14,13 +14,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
+/**
+ * Parser xmli z rozk³adem 
+ * @author Micha³ Brzeziñski-Spiczak
+ *
+ */
 public class XmlParser {
-
-	/**
-	 * @param args
-	 * @throws SQLException
-	 */
 
 	public void parse(String file, Connection conn) throws SQLException {
 
