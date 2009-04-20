@@ -45,5 +45,11 @@ public class WEdge extends DefaultWeightedEdge {
 		this.conn = bconnector;
 		return this;
 	}
+	public Object getSourceVertex(){
+		return getSource();
+	}
+	public Object getTargetVertex(){
+		return getTarget();
+	}
 
 }
