@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.wroc.pwr.gtt.server.dbupdater.XmlParser;
 import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
+import org.wroc.pwr.gtt.server.graphcreator.LineStop;
 
 /**
  * Klasa odpowiedzialna za ca³oœæ po³¹czenia z baz¹ danych - od nawi¹zania
@@ -158,9 +159,11 @@ public class DBconnector {
 	 * @param p1
 	 * @param p2
 	 * @param amount
+	 * @return
 	 */
-	public void findCourse(int typ, int p1, int p2, int amount) {
-		loadGraph().findCourse(typ, p1, p2, amount);
+	public ArrayList<ArrayList<LineStop>> findCourse(int typ, int p1, int p2, int amount) {
+		ArrayList<ArrayList<LineStop>> list = loadGraph().findCourse(typ, p1, p2, amount);
+		return list;
 	}
 
 	/**
@@ -502,6 +505,22 @@ public class DBconnector {
 
 		}
 		Collections.sort(list);
+		return list;
+	}
+
+	public ArrayList<ArrayList<LineStop>> resultTimeUpdate(ArrayList<ArrayList<LineStop>> list, Time time, int dzien_id) {
+		for (int i = 0; i < list.size(); i++) {
+			Time time1 = (Time) time.clone();
+			for (int k = 0; k < list.get(i).size(); k++) {
+				
+				if (list.get(i).get(k).getLinia_id() != 1) {
+					list.get(i).get(k).setTime(getNearest(list.get(i).get(k).getPrzystStart(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0));
+					//time1 = getNearest(list.get(i).get(k).getPrzystEnd(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0);
+					//problemy z czasami! jak wyliczyæ czas jazdy do petli skoro z pêtli nie odjezd¿a ta wersja linii... 
+					
+				}
+			}
+		}
 		return list;
 	}
 }
