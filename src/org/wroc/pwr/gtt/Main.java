@@ -28,19 +28,19 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		// ArrayList<String> xmlFiles;
-		// TTdownloader.download(url, archName); //pobieranie archiwum z
+		ArrayList<String> xmlFiles;
+		TTdownloader.download(url, archName); // pobieranie archiwum z
 		// rozk³adami z serwera
-		// xmlFiles = TTdownloader.unzip(archName, dir); //rozpakowanie archiwum
+		xmlFiles = TTdownloader.unzip(archName, dir); // rozpakowanie archiwum
 		// do odpowiedniego katalogu, zwraca liste nazw rozpakowanych plików
 		DBconnector connector = new DBconnector(driver, dbhost, dbName, userName, pasword); // nawi¹zanie
-		// po³¹czenia
-		// z
-		// baz¹
-		// connector.updateDB(xmlFiles); //update bazy danych wg plików xml
-		Time time = new Time(9, 25, 0);
-		ArrayList<ArrayList<LineStop>> sResult = connector.findCourse(2, connector.getPrzystId("popowice"), connector.getPrzystId("krzyki"), 20);
-		sResult = connector.resultTimeUpdate(sResult, time, 1);
+		// po³¹czenia z baz¹
+		connector.updateDB(xmlFiles); // update bazy danych wg plików xml
+
+		// ////////////////////wyszukiwanie po³¹czeñ z wydrukiem wszystkiego...
+		Time time = new Time(3, 25, 0);
+		ArrayList<ArrayList<LineStop>> sResult = connector.findCourse(2, connector.getPrzystId("krzyki"), connector.getPrzystId("eureka"), 1);
+		// sResult = connector.resultTimeUpdate(sResult, time, 1);
 		for (int i = 0; i < sResult.size(); i++) {
 			for (int k = 0; k < sResult.get(i).size(); k++) {
 				System.out.print("(" + connector.getLiniaNazwa(sResult.get(i).get(k).getLinia_id()) + ")");
@@ -49,11 +49,11 @@ public class Main {
 			}
 			System.out.println();
 		}
-		// System.out.println(connector.getLinie());
-		// System.out.println(connector.getWarianty("2"));
-		// System.out.println(connector.getLiniaNazwa(2));
-		// System.out.println(connector.getWariantNazwa(2));
-		// System.out.println(connector.getTrasa(2));
+		System.out.println(connector.getLinie());
+		System.out.println(connector.getWarianty("2"));
+		System.out.println(connector.getLiniaNazwa(2));
+		System.out.println(connector.getWariantNazwa(2));
+		System.out.println(connector.getTrasa(2));
 		// System.out.println(connector.getRozklad(1, "4"));
 		// System.out.println(connector.getNearest(35, 3, 1, time));
 		// System.out.println(connector.getChanges(14));
