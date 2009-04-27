@@ -27,19 +27,15 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 		super(WEdge.class);
 	}
 
-	public void addWEdge(DBconnector bconnector, int p1, int p2, int linia, int waga, int waga2, int typ) {
-		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setTyp(typ).setDB(bconnector), waga);
+	public void addWEdge(DBconnector bconnector, int p1, int p2, int linia, int waga, int waga2) {
+		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setDB(bconnector), waga);
 	}
 
-	public ArrayList<ArrayList<LineStop>> findCourse(int typ, int p1, int p2, int amount) {
+	public ArrayList<ArrayList<LineStop>> findCourse(int p1, int p2, int amount) {
 		ArrayList<ArrayList<LineStop>> result = new ArrayList<ArrayList<LineStop>>();
-		GttGraph g = (GttGraph) this.clone();
-		for (WEdge w : edgeSet()) {
-			if (!(w.typ <= typ))
-				g.removeEdge(w);
-		}
-		if (g.containsVertex(p1) && g.containsVertex(p2)) {
-			KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(g, p1, amount);
+	
+		if (containsVertex(p1) && containsVertex(p2)) {
+			KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(this, p1, amount);
 			ArrayList<GraphPath<Integer, WEdge>> a = new ArrayList<GraphPath<Integer, WEdge>>();
 
 			if ((a = (ArrayList<GraphPath<Integer, WEdge>>) ks.getPaths(p2)) != null) {

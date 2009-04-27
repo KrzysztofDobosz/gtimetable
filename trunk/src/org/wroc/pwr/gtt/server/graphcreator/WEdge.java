@@ -16,7 +16,6 @@ import org.wroc.pwr.gtt.server.DBconnector;
 public class WEdge extends DefaultWeightedEdge {
 	int label;
 	int waga;
-	int typ;
 	DBconnector conn;
 
 	public WEdge setLabel(int linia) {
@@ -24,10 +23,7 @@ public class WEdge extends DefaultWeightedEdge {
 		return this;
 	}
 
-	public WEdge setTyp(int typ) {
-		this.typ = typ;
-		return this;
-	}
+
 
 	public String toString() {
 		if (label != 1)

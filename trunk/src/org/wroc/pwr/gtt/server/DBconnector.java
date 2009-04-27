@@ -162,7 +162,7 @@ public class DBconnector {
 	 * @return
 	 */
 	public ArrayList<ArrayList<LineStop>> findCourse(int typ, int p1, int p2, int amount) {
-		ArrayList<ArrayList<LineStop>> list = loadGraph().findCourse(typ, p1, p2, amount);
+		ArrayList<ArrayList<LineStop>> list = loadGraph(typ).findCourse(p1, p2, amount);
 		return list;
 	}
 
@@ -171,9 +171,40 @@ public class DBconnector {
 	 * 
 	 * @return
 	 */
-	private GttGraph loadGraph() {
+	private GttGraph loadGraph(int typ) {
 		GttGraph graph = new GttGraph();
+		ArrayList<Integer> typs = new ArrayList<Integer>();
 
+		switch (typ) {
+		case 1: // normalne
+			typs.add(1);
+			typs.add(2);
+			typs.add(5);
+			typs.add(18);
+			typs.add(20);
+
+			break;
+		case 2:// pospieszne
+			typs.add(1);
+			typs.add(3);
+			break;
+		case 3: // normalne i pospieszne
+			typs.add(1);
+			typs.add(2);
+			typs.add(3);
+			typs.add(5);
+			typs.add(18);
+			typs.add(20);
+			break;
+		case 4: // nocne
+			typs.add(4);
+			for (int i = 6; i < 18; i++)
+				typs.add(i);
+			break;
+		case 5: // wszystkie
+			for (int i = 1; i < 22; i++)
+				typs.add(i);
+		}
 		try {
 
 			ResultSet rs = stmt.executeQuery("Select przyst_id from Przystanek");
@@ -185,12 +216,13 @@ public class DBconnector {
 			System.out.println("loaded sql");
 
 			while (rs.next()) {
-				if (rs.getInt("waga") == 0)
-					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5), rs.getInt(6));
-				else
+				if (typs.contains(rs.getInt(6))) {
+					if (rs.getInt("waga") == 0)
+						graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, rs.getInt(5));
+					else
 
-					graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5), rs.getInt(6));
-
+						graph.addWEdge(this, rs.getInt(2), rs.getInt(3), rs.getInt(4), 1, rs.getInt(5));
+				}
 			}
 
 		} catch (SQLException e) {
@@ -467,14 +499,13 @@ public class DBconnector {
 		ArrayList<Time> time = new ArrayList<Time>();
 		try {
 			stmt.execute("use gtt");
-			ResultSet s = stmt.executeQuery("select  czas from Rozklad where linia_id='" + linia_id + "' and przyst_id='" + przyst_id + "' and dzien_id='"
+			ResultSet s = stmt.executeQuery("select czas from Rozklad where linia_id='" + linia_id + "' and przyst_id='" + przyst_id + "' and dzien_id='"
 					+ dzien_id + "' and czas>'" + start + "' limit 3");
 			while (s.next()) {
 				time.add((Time) s.getObject("czas"));
 			}
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 
 		}
@@ -512,13 +543,19 @@ public class DBconnector {
 		for (int i = 0; i < list.size(); i++) {
 			Time time1 = (Time) time.clone();
 			for (int k = 0; k < list.get(i).size(); k++) {
-				
+
 				if (list.get(i).get(k).getLinia_id() != 1) {
 					list.get(i).get(k).setTime(getNearest(list.get(i).get(k).getPrzystStart(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0));
-					//time1 = getNearest(list.get(i).get(k).getPrzystEnd(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0);
-					//problemy z czasami! jak wyliczyæ czas jazdy do petli skoro z pêtli nie odjezd¿a ta wersja linii... 
-					
-				}
+					time1 = getNearest(list.get(i).get(k).getPrzystEnd(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0);
+					// problemy z czasami! jak wyliczyæ czas jazdy do petli
+					// skoro z pêtli nie odjezd¿a ta wersja linii...
+					// w ogóle problemy z wyliczaniem czasów przejazdów... z
+					// dupy to wszystko....
+					// trzeba zgarn¹æ do bazdy w ogole od razy czasy
+					// przystanek-przystanek...
+
+				} else
+					list.get(i).get(k).setTime(time1);
 			}
 		}
 		return list;
