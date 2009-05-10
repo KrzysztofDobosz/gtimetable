@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><module>
+
+	<!-- Inherit the core Web Toolkit stuff.                  -->
+	<inherits name="com.google.gwt.user.User"/>
+
+	<!-- Specify the app entry point class.                   -->
+	<entry-point class="org.wroc.pwr.gtt.client.Client"/>
+
+  	<inherits name="com.google.gwt.user.theme.standard.Standard"/>
+  	<!-- <inherits name="com.google.gwt.user.theme.chrome.Chrome"/> -->
+  	<!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/> -->
+
+   <inherits name="com.google.gwt.maps.GoogleMaps" />
+
+   <script src="http://maps.google.com/maps?gwt=1&amp;file=api&amp;v=2" />
+
+<servlet class="org.wroc.pwr.gtt.server.GttServiceImpl" path="/GttService"/></module>

@@ -19,12 +19,12 @@ import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
 import org.wroc.pwr.gtt.server.graphcreator.LineStop;
 
 /**
- * Klasa odpowiedzialna za ca³oœæ po³¹czenia z baz¹ danych - od nawi¹zania
- * po³¹czania, przez wype³nienie bazy dancyh po wszelki dostêp do samych danych
- * za spraw¹ odpowiednich metod
- * 
- * @author Micha³ Brzeziñski
- * 
+ * Klasa odpowiedzialna za calosc polaczenia z baza danych - od nawiazania
+ * polaczania, przez wypelnienie bazy danych po wszelki dostep do samych danych
+ * za sprawa odpowiednich metod
+ *
+ * @author Michal Brzezinski
+ *
  */
 public class DBconnector {
 	Connection conn = null;
@@ -38,9 +38,9 @@ public class DBconnector {
 	String pasword;
 
 	/**
-	 * Konstruktor DBconnector przyjmuj¹cy parametry po³¹czenia JDBC i
-	 * nawiazuj¹cy po³¹czenie z baz¹
-	 * 
+	 * Konstruktor DBconnector przyjmujacy parametry polaczenia JDBC i
+	 * nawiazujacy polaczenie z baza
+	 *
 	 * @param driver
 	 * @param host
 	 * @param dbName
@@ -76,18 +76,18 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda aktualizuj¹ca-wype³niaj¹ca bazê danych na podstawie plików XML z
-	 * rozk³adami
-	 * 
+	 * Metoda aktualizujaca-wypelniajaca baze danych na podstawie plikow XML z
+	 * rozkladami
+	 *
 	 * @param fileList
-	 *            - lista lokalizacji plików xml
+	 *            - lista lokalizacji plikow xml
 	 */
 
 	public void updateDB(ArrayList<String> fileList) {
 
 		try {
 
-			String[] createStatement = readFileAsString("create.sql").split("\\n");
+			String[] createStatement = readFileAsString(System.getenv("TOMCAT_HOME") + "/webapps/gtt/WEB-INF/lib/create.sql").split("\\n");
 			for (int i = 0; i < createStatement.length; i++) {
 				System.out.println(createStatement[i]);
 				stmt.executeUpdate(createStatement[i]);
@@ -150,11 +150,11 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda wyszukuj¹ca po³¹czenie miêdzy dwoma przystankami p1 i p2; linie
+	 * Metoda wyszukujaca polaczenie miedzy dwoma przystankami p1 i p2; linie
 	 * ograniczone do typu typ (wg id z bazy 2- tylko normalne, 3-normalne i
-	 * pospieszne... do uzupe³nienia na switchu nocne itp); amount - z¹dana
-	 * iloœæ po³¹czeñ,
-	 * 
+	 * pospieszne... do uzupelnienia na switchu nocne itp); amount - zadana
+	 * ilosc polaczen,
+	 *
 	 * @param typ
 	 * @param p1
 	 * @param p2
@@ -167,8 +167,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda wczytuj¹ca strukturê grafu z bazy danych
-	 * 
+	 * Metoda wczytujaca strukture grafu z bazy danych
+	 *
 	 * @return
 	 */
 	private GttGraph loadGraph(int typ) {
@@ -234,7 +234,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca nazwe przystanku o zadanym id
-	 * 
+	 *
 	 * @param przyst_id
 	 * @return
 	 */
@@ -252,8 +252,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Zwraca nazwê lini o zadanym id
-	 * 
+	 * Zwraca nazwe lini o zadanym id
+	 *
 	 * @param linia_id
 	 * @return
 	 */
@@ -272,7 +272,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca jeden, losowy id przystanku o zadanej nazwie
-	 * 
+	 *
 	 * @param nazwa
 	 * @return
 	 */
@@ -292,7 +292,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id lini o zadanej nazwie (wariant 1)
-	 * 
+	 *
 	 * @param nazwa
 	 * @return
 	 */
@@ -311,9 +311,9 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca listê id przystanków w kolejnoœci pokonywania na zadanej po id
+	 * zwraca liste id przystankow w kolejnosci pokonywania na zadanej po id
 	 * lini
-	 * 
+	 *
 	 * @param linia_id
 	 * @return
 	 */
@@ -335,9 +335,9 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca rozk³ad danej lini z zadanego przystanku - struktura tablicy
-	 * hashuj¹cej dzien_id->lista<czas>
-	 * 
+	 * zwraca rozklad danej lini z zadanego przystanku - struktura tablicy
+	 * hashujacej dzien_id->lista<czas>
+	 *
 	 * @param przyst_id
 	 * @param linia
 	 * @return
@@ -368,8 +368,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Zwraca nazwy linii z podzia³em na typu hashmapa typ_id-> lista nazw
-	 * 
+	 * Zwraca nazwy linii z podzialem na typu hashmapa typ_id-> lista nazw
+	 *
 	 * @return
 	 */
 	public HashMap<Integer, ArrayList<String>> getLinie() {
@@ -392,8 +392,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca nazwê typu wzglêdem id
-	 * 
+	 * zwraca nazwe typu wzgledem id
+	 *
 	 * @param typ_id
 	 * @return
 	 */
@@ -415,8 +415,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca nazwê wariantu wzglêdem id lini
-	 * 
+	 * zwraca nazwe wariantu wzgledem id lini
+	 *
 	 * @param linia_id
 	 * @return
 	 */
@@ -438,8 +438,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca listê wariantów danej linii wzglêdem nazwy
-	 * 
+	 * zwraca liste wariantow danej linii wzgledem nazwy
+	 *
 	 * @param linia_nazwa
 	 * @return
 	 */
@@ -462,8 +462,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca wspó³rzêdne przystaneku wzglêdem id
-	 * 
+	 * zwraca wspolrzedne przystanku wzgledem id
+	 *
 	 * @param przyst_id
 	 * @return
 	 */
@@ -487,7 +487,7 @@ public class DBconnector {
 	/**
 	 * zwraca najbizszy zadanemu czasowi (start) wyjazd danej linii (linia_id) z
 	 * zadanego przystanku (przyst_id) w zadanyc dzien (dzien_id(
-	 * 
+	 *
 	 * @param przyst_id
 	 * @param linia_id
 	 * @param dzien_id
@@ -514,8 +514,8 @@ public class DBconnector {
 
 	/**
 	 * zwraca mozliwe przesiadki (lista id lini) z zadanego przystanku lub
-	 * przystanków o tej samej nazwie (tzn. w najbli¿szej okolicy)
-	 * 
+	 * przystankow o tej samej nazwie (tzn. w najblizszej okolicy)
+	 *
 	 * @param przyst_id
 	 * @return
 	 */
@@ -547,11 +547,11 @@ public class DBconnector {
 				if (list.get(i).get(k).getLinia_id() != 1) {
 					list.get(i).get(k).setTime(getNearest(list.get(i).get(k).getPrzystStart(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0));
 					time1 = getNearest(list.get(i).get(k).getPrzystEnd(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0);
-					// problemy z czasami! jak wyliczyæ czas jazdy do petli
-					// skoro z pêtli nie odjezd¿a ta wersja linii...
-					// w ogóle problemy z wyliczaniem czasów przejazdów... z
+					// problemy z czasami! jak wyliczyï¿½ czas jazdy do petli
+					// skoro z pï¿½tli nie odjezdï¿½a ta wersja linii...
+					// w ogï¿½le problemy z wyliczaniem czasï¿½w przejazdï¿½w... z
 					// dupy to wszystko....
-					// trzeba zgarn¹æ do bazdy w ogole od razy czasy
+					// trzeba zgarnï¿½ï¿½ do bazdy w ogole od razy czasy
 					// przystanek-przystanek...
 
 				} else

@@ -14,12 +14,12 @@ import org.jgrapht.graph.Subgraph;
 import org.wroc.pwr.gtt.server.DBconnector;
 
 /**
- * Klasa odpowiedzialna za reprezentacje grafow¹, stanowi rozszerzenie aktualnie
- * do wazonego, skierowanego multigrafu biblioteki jgrapht, póxniej raczej
- * w³asnej biblioteki grafowej
- * 
- * @author Micha³ Brzeziñski-Spiczak
- * 
+ * Klasa odpowiedzialna za reprezentacje grafow, stanowi rozszerzenie aktualnie
+ * do wazonego, skierowanego multigrafu biblioteki jgrapht, pozniej raczej
+ * wlasnej biblioteki grafowej
+ *
+ * @author Michal Brzezinski-Spiczak
+ *
  */
 public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 
@@ -33,7 +33,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 
 	public ArrayList<ArrayList<LineStop>> findCourse(int p1, int p2, int amount) {
 		ArrayList<ArrayList<LineStop>> result = new ArrayList<ArrayList<LineStop>>();
-	
+
 		if (containsVertex(p1) && containsVertex(p2)) {
 			KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(this, p1, amount);
 			ArrayList<GraphPath<Integer, WEdge>> a = new ArrayList<GraphPath<Integer, WEdge>>();
@@ -51,7 +51,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 					result.add(resulte);
 				}
 			} else
-				System.out.println("brak po³¹czenia");
+				System.out.println("brak poï¿½ï¿½czenia");
 		} else
 			System.out.println("brak przystanku w bazie");
 		return result;

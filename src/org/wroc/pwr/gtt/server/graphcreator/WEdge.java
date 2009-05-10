@@ -6,12 +6,12 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.wroc.pwr.gtt.server.DBconnector;
 
 /**
- * Klasa rozszerzaj¹ca wazona krawêdŸ dodaj¹ca etykiety - id lini i typ id oraz
- * druga wagê. Metody zwracaj¹ this ze wzglêdu na konstrukcje metod z biblioteki
+ * Klasa rozszerzajaca wazona krawedz dodajaca etykiety - id lini i typ id oraz
+ * druga wage. Metody zwracaja this ze wzgledu na konstrukcje metod z biblioteki
  * jgrapht - dodawanie krawedzie do grafu)
- * 
- * @author Micha³ Brzeziñski-Spiczak
- * 
+ *
+ * @author Michal Brzezinski-Spiczak
+ *
  */
 public class WEdge extends DefaultWeightedEdge {
 	int label;

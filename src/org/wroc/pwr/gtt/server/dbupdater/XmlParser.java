@@ -15,8 +15,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 /**
- * Parser xmli z rozk³adem 
- * @author Micha³ Brzeziñski-Spiczak
+ * Parser xmli z rozkladem
+ * @author Michal Brzezinski-Spiczak
  *
  */
 public class XmlParser {
@@ -191,10 +191,10 @@ public class XmlParser {
 												}
 											}
 										}
-										// /dodawanie przystanków koncowych do
-										// rozk³adu (w celu póŸniejszej
-										// u³atwionej generacji trasy...
-										// godzina, minuta=NULL, powatarzaj¹ sie
+										// /dodawanie przystankï¿½w koncowych do
+										// rozkï¿½adu (w celu pï¿½niejszej
+										// uï¿½atwionej generacji trasy...
+										// godzina, minuta=NULL, powatarzajï¿½ sie
 										// nr_przyst...
 										if (!added) {
 											stmt.executeUpdate("INSERT INTO Rozklad (linia_id, przyst_id, nr_przyst) VALUES("

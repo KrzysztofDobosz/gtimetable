@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.jgrapht.GraphPath;
 /**
- * Comparator do poprawnego sortowania wyników wyszukiwania po³aczen po grafie;
- * Najpierw wzglêdem iloœci przesiadek, nastepnie wzgledem odleg³oœci przystankowej.
- * @author Micha³ Brzeziñski-Spiczak
+ * Comparator do poprawnego sortowania wynikow wyszukiwania polaczen po grafie;
+ * Najpierw wzgledem ilosci przesiadek, nastepnie wzgledem odleglosci przystankowej.
+ * @author Michal Brzezinski-Spiczak
  *
  * @param <T>
  */

@@ -1,11 +1,11 @@
 package org.wroc.pwr.gtt.server;
 
 /**
- * Klasa reprezentuj¹ca wspo³rzêdne geograficzne, przechowuje d³ugoœc i
- * szereokoœæ geograficza; konieczne do wyœwietalnia przyst. na mapie.
- * 
- * @author Micha³ Brzeziñski-Spiczak
- * 
+ * Klasa reprezentujaca wspolrzedne geograficzne, przechowuje dlugosc i
+ * szereokosc geograficza; konieczne do wyswietalnia przyst. na mapie.
+ *
+ * @author Michal Brzezinski-Spiczak
+ *
  */
 public class Coordinates {
 	double dlugosc;
