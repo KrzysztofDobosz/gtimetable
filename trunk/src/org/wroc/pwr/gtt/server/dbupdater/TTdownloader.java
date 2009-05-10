@@ -20,8 +20,8 @@ import java.util.zip.ZipFile;
 
 import com.sun.jmx.snmp.Timestamp;
 /**
- * Klasa stanowiaca downloader oraz unzipper do archiwum rozk³adów
- * @author Micha³ Brzeziñski-Spiczak
+ * Klasa stanowiaca downloader oraz unzipper do archiwum rozkladow
+ * @author Michal Brzezinski-Spiczak
  *
  */
 public class TTdownloader {
@@ -38,7 +38,7 @@ public class TTdownloader {
 			byte[] buf;
 			int ByteRead, ByteWritten = 0;
 			Url = new URL(fAddress);
-			
+
 
 			outStream = new BufferedOutputStream(new FileOutputStream(
 					 localFileName));
@@ -49,8 +49,8 @@ public class TTdownloader {
 		      String s1 = df1.format(new Date(uCon.getLastModified()));
 
 			System.out.println("Pobierany rozklad z dnia: " + s1);
-			
-			
+
+
 			is = uCon.getInputStream();
 			buf = new byte[size];
 			while ((ByteRead = is.read(buf)) != -1) {
@@ -100,7 +100,7 @@ public class TTdownloader {
 				String[] nameTab = entry
 				.getName().split("/");
 				String name = nameTab[nameTab.length-1];
-				
+
 				copyInputStream(zipFile.getInputStream(entry),
 						new BufferedOutputStream(new FileOutputStream(dir + "\\" + name)));
 				fileNames.add(dir+"\\" + name);}
