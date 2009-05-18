@@ -1,7 +1,10 @@
 package org.wroc.pwr.gtt.server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -9,22 +12,25 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.wroc.pwr.gtt.server.dbupdater.XmlParser;
 import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
 import org.wroc.pwr.gtt.server.graphcreator.LineStop;
 
+
 /**
- * Klasa odpowiedzialna za calosc polaczenia z baza danych - od nawiazania
- * polaczania, przez wypelnienie bazy danych po wszelki dostep do samych danych
- * za sprawa odpowiednich metod
- *
- * @author Michal Brzezinski
- *
+ * Klasa odpowiedzialna za ca³oœæ po³¹czenia z baz¹ danych - od nawi¹zania
+ * po³¹czania, przez wype³nienie bazy dancyh po wszelki dostêp do samych danych
+ * za spraw¹ odpowiednich metod
+ * 
+ * @author Micha³ Brzeziñski
+ * 
  */
 public class DBconnector {
 	Connection conn = null;
@@ -38,9 +44,9 @@ public class DBconnector {
 	String pasword;
 
 	/**
-	 * Konstruktor DBconnector przyjmujacy parametry polaczenia JDBC i
-	 * nawiazujacy polaczenie z baza
-	 *
+	 * Konstruktor DBconnector przyjmuj¹cy parametry po³¹czenia JDBC i
+	 * nawiazuj¹cy po³¹czenie z baz¹
+	 * 
 	 * @param driver
 	 * @param host
 	 * @param dbName
@@ -76,18 +82,18 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda aktualizujaca-wypelniajaca baze danych na podstawie plikow XML z
-	 * rozkladami
-	 *
+	 * Metoda aktualizuj¹ca-wype³niaj¹ca bazê danych na podstawie plików XML z
+	 * rozk³adami
+	 * 
 	 * @param fileList
-	 *            - lista lokalizacji plikow xml
+	 *            - lista lokalizacji plików xml
 	 */
 
-	public void updateDB(ArrayList<String> fileList) {
+	public void updateDB(ArrayList<String> fileList, String tramCo, String busCo) {
 
 		try {
 
-			String[] createStatement = readFileAsString(System.getenv("TOMCAT_HOME") + "/webapps/gtt/WEB-INF/lib/create.sql").split("\\n");
+			String[] createStatement = readFileAsString("create.sql").split("\\n");
 			for (int i = 0; i < createStatement.length; i++) {
 				System.out.println(createStatement[i]);
 				stmt.executeUpdate(createStatement[i]);
@@ -119,6 +125,24 @@ public class DBconnector {
 								+ "','" + 1 + "','" + 0 + "', '" + 1 + "')");
 
 					}
+			
+			//update przyst coordinates:
+			HashMap<String, Coordinates> tramCoord = readCoordinates(tramCo);
+			HashMap<String, Coordinates> burCoord = readCoordinates(busCo);
+			tramCoord.putAll(burCoord);
+			Set<Entry<String, Coordinates>> set = tramCoord.entrySet();
+
+		    Iterator<Entry<String, Coordinates>> i = set.iterator();
+
+		    while(i.hasNext()){
+		      Map.Entry me = i.next();
+		      stmt.executeUpdate("UPDATE Przystanek set lat = '" + ((Coordinates) me.getValue()).getSzerokosc() + "', lng ='" + ((Coordinates) me.getValue()).getDlugosc() + "' WHERE zdik_id = '" +me.getKey() + "'");
+		      
+		    //  System.out.println(me.getKey() + " : " + me.getValue() );
+		    }
+			
+		
+			
 		} catch (SQLException se) {
 			System.out.println("SQL Exception:");
 
@@ -134,7 +158,31 @@ public class DBconnector {
 			e.printStackTrace();
 		}
 	}
+	public static HashMap<String, Coordinates> readCoordinates(String fileName) {
+		HashMap<String, Coordinates> map = new HashMap<String, Coordinates>();
+		try {
 
+			FileInputStream fstream = new FileInputStream(fileName);
+			// Get the object of DataInputStream
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String strLine;
+			strLine = br.readLine();
+			while ((strLine = br.readLine()) != null) {
+
+				String[] line = strLine.split(",");
+				map.put(line[1], new Coordinates(Double.parseDouble(line[6]+"."+line[7]),Double.parseDouble(line[8]+"."+line[9])));
+				
+			}
+
+			in.close();
+		} catch (Exception e) {
+			System.err.println("Error: " + e.getMessage());
+		}
+
+		return map;
+
+	}
 	private static String readFileAsString(String filePath) throws java.io.IOException {
 		StringBuffer fileData = new StringBuffer(1000);
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -150,11 +198,11 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda wyszukujaca polaczenie miedzy dwoma przystankami p1 i p2; linie
+	 * Metoda wyszukuj¹ca po³¹czenie miêdzy dwoma przystankami p1 i p2; linie
 	 * ograniczone do typu typ (wg id z bazy 2- tylko normalne, 3-normalne i
-	 * pospieszne... do uzupelnienia na switchu nocne itp); amount - zadana
-	 * ilosc polaczen,
-	 *
+	 * pospieszne... do uzupe³nienia na switchu nocne itp); amount - z¹dana
+	 * iloœæ po³¹czeñ,
+	 * 
 	 * @param typ
 	 * @param p1
 	 * @param p2
@@ -167,8 +215,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Metoda wczytujaca strukture grafu z bazy danych
-	 *
+	 * Metoda wczytuj¹ca strukturê grafu z bazy danych
+	 * 
 	 * @return
 	 */
 	private GttGraph loadGraph(int typ) {
@@ -197,10 +245,12 @@ public class DBconnector {
 			typs.add(20);
 			break;
 		case 4: // nocne
+			{
+				typs.add(1);
 			typs.add(4);
 			for (int i = 6; i < 18; i++)
 				typs.add(i);
-			break;
+			break;}
 		case 5: // wszystkie
 			for (int i = 1; i < 22; i++)
 				typs.add(i);
@@ -234,7 +284,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca nazwe przystanku o zadanym id
-	 *
+	 * 
 	 * @param przyst_id
 	 * @return
 	 */
@@ -252,8 +302,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Zwraca nazwe lini o zadanym id
-	 *
+	 * Zwraca nazwê lini o zadanym id
+	 * 
 	 * @param linia_id
 	 * @return
 	 */
@@ -272,7 +322,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca jeden, losowy id przystanku o zadanej nazwie
-	 *
+	 * 
 	 * @param nazwa
 	 * @return
 	 */
@@ -292,7 +342,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id lini o zadanej nazwie (wariant 1)
-	 *
+	 * 
 	 * @param nazwa
 	 * @return
 	 */
@@ -311,9 +361,9 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca liste id przystankow w kolejnosci pokonywania na zadanej po id
+	 * zwraca listê id przystanków w kolejnoœci pokonywania na zadanej po id
 	 * lini
-	 *
+	 * 
 	 * @param linia_id
 	 * @return
 	 */
@@ -335,9 +385,9 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca rozklad danej lini z zadanego przystanku - struktura tablicy
-	 * hashujacej dzien_id->lista<czas>
-	 *
+	 * zwraca rozk³ad danej lini z zadanego przystanku - struktura tablicy
+	 * hashuj¹cej dzien_id->lista<czas>
+	 * 
 	 * @param przyst_id
 	 * @param linia
 	 * @return
@@ -368,8 +418,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * Zwraca nazwy linii z podzialem na typu hashmapa typ_id-> lista nazw
-	 *
+	 * Zwraca nazwy linii z podzia³em na typu hashmapa typ_id-> lista nazw
+	 * 
 	 * @return
 	 */
 	public HashMap<Integer, ArrayList<String>> getLinie() {
@@ -392,8 +442,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca nazwe typu wzgledem id
-	 *
+	 * zwraca nazwê typu wzglêdem id
+	 * 
 	 * @param typ_id
 	 * @return
 	 */
@@ -415,8 +465,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca nazwe wariantu wzgledem id lini
-	 *
+	 * zwraca nazwê wariantu wzglêdem id lini
+	 * 
 	 * @param linia_id
 	 * @return
 	 */
@@ -438,8 +488,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca liste wariantow danej linii wzgledem nazwy
-	 *
+	 * zwraca listê wariantów danej linii wzglêdem nazwy
+	 * 
 	 * @param linia_nazwa
 	 * @return
 	 */
@@ -462,8 +512,8 @@ public class DBconnector {
 	}
 
 	/**
-	 * zwraca wspolrzedne przystanku wzgledem id
-	 *
+	 * zwraca wspó³rzêdne przystaneku wzglêdem id
+	 * 
 	 * @param przyst_id
 	 * @return
 	 */
@@ -487,7 +537,7 @@ public class DBconnector {
 	/**
 	 * zwraca najbizszy zadanemu czasowi (start) wyjazd danej linii (linia_id) z
 	 * zadanego przystanku (przyst_id) w zadanyc dzien (dzien_id(
-	 *
+	 * 
 	 * @param przyst_id
 	 * @param linia_id
 	 * @param dzien_id
@@ -514,8 +564,8 @@ public class DBconnector {
 
 	/**
 	 * zwraca mozliwe przesiadki (lista id lini) z zadanego przystanku lub
-	 * przystankow o tej samej nazwie (tzn. w najblizszej okolicy)
-	 *
+	 * przystanków o tej samej nazwie (tzn. w najbli¿szej okolicy)
+	 * 
 	 * @param przyst_id
 	 * @return
 	 */
@@ -547,11 +597,11 @@ public class DBconnector {
 				if (list.get(i).get(k).getLinia_id() != 1) {
 					list.get(i).get(k).setTime(getNearest(list.get(i).get(k).getPrzystStart(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0));
 					time1 = getNearest(list.get(i).get(k).getPrzystEnd(), list.get(i).get(k).getLinia_id(), dzien_id, time1).get(0);
-					// problemy z czasami! jak wyliczyï¿½ czas jazdy do petli
-					// skoro z pï¿½tli nie odjezdï¿½a ta wersja linii...
-					// w ogï¿½le problemy z wyliczaniem czasï¿½w przejazdï¿½w... z
+					// problemy z czasami! jak wyliczyæ czas jazdy do petli
+					// skoro z pêtli nie odjezd¿a ta wersja linii...
+					// w ogóle problemy z wyliczaniem czasów przejazdów... z
 					// dupy to wszystko....
-					// trzeba zgarnï¿½ï¿½ do bazdy w ogole od razy czasy
+					// trzeba zgarn¹æ do bazdy w ogole od razy czasy
 					// przystanek-przystanek...
 
 				} else
