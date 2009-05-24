@@ -8,43 +8,34 @@ package org.wroc.pwr.gtt.server;
  *
  */
 public class Coordinates {
-	double dlugosc;
-	double szerokosc;
+	private double lat;
+	private double lng;
 
 	public Coordinates(double dlugosc, double szerokosc) {
 
-		this.dlugosc = dlugosc;
-		this.szerokosc = szerokosc;
+		this.lat = dlugosc;
+		this.lng = szerokosc;
 	}
 
-	/**
-	 * @return the dlugosc
-	 */
-	public double getDlugosc() {
-		return dlugosc;
-	}
+   public double getLat()
+   {
+      return lat;
+   }
 
-	/**
-	 * @param dlugosc
-	 *            the dlugosc to set
-	 */
-	public void setDlugosc(double dlugosc) {
-		this.dlugosc = dlugosc;
-	}
+   public void setLat(double lat)
+   {
+      this.lat = lat;
+   }
 
-	/**
-	 * @return the szerokosc
-	 */
-	public double getSzerokosc() {
-		return szerokosc;
-	}
+   public double getLng()
+   {
+      return lng;
+   }
 
-	/**
-	 * @param szerokosc
-	 *            the szerokosc to set
-	 */
-	public void setSzerokosc(double szerokosc) {
-		this.szerokosc = szerokosc;
-	}
+   public void setLng(double lng)
+   {
+      this.lng = lng;
+   }
+
 
 }

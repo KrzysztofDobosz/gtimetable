@@ -15,10 +15,10 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService {
 	static String archName = "MPK.zip";
 	static String dir = "zdik";
 	static String dbhost = "jdbc:mysql://localhost:3306/";
-	static String dbName = "mysql";
+	static String dbName = "gtt";
 	static String driver = "com.mysql.jdbc.Driver";
 	static String userName = "root";
-	static String pasword = "password";
+	static String pasword = "8pv2y2n8";
 	static String tramCoFile = "tram.txt";
 	static String busCoFile = "bus.txt";
 	static DBconnector connector = new DBconnector(driver, dbhost, dbName,
@@ -80,4 +80,5 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService {
 		xmlFiles = TTdownloader.unzip(archName, dir);
 		connector.updateDB(xmlFiles, tramCoFile, busCoFile);
 	}
+
 }
