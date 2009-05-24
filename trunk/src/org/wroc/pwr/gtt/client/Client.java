@@ -9,13 +9,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.FormHandler;
-import com.google.gwt.user.client.ui.FormPanel;
-import com.google.gwt.user.client.ui.FormSubmitCompleteEvent;
-import com.google.gwt.user.client.ui.FormSubmitEvent;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.KeyboardListener;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
@@ -36,6 +30,8 @@ import com.google.gwt.maps.client.geocode.Placemark;
 import com.google.gwt.maps.client.geocode.StatusCodes;
 import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.maps.client.overlay.Marker;
+import com.google.gwt.maps.client.event.MapDoubleClickHandler;
+import com.google.gwt.maps.client.event.MapMouseMoveHandler;
 import com.google.gwt.maps.client.event.MarkerClickHandler;
 
 public class Client implements EntryPoint
@@ -46,6 +42,9 @@ public class Client implements EntryPoint
    private TextBox address;
    private Geocoder geocoder;
    private InfoWindow info;
+   private TextArea l;
+   private LatLng startSpot;
+   private LatLng stopSpot;
 
    private void find()
    {
@@ -91,21 +90,25 @@ public class Client implements EntryPoint
       });
       panel.add(new Label("\n"));
       final Label poczatek = new Label("- początek trasy");
-      poczatek.addClickListener(new ClickListener(){
+      poczatek.addClickListener(new ClickListener()
+      {
 
          public void onClick(Widget sender)
          {
             // TODO Auto-generated method stub
 
-         }});
+         }
+      });
       final Label koniec = new Label("- koniec trasy");
-      koniec.addClickListener(new ClickListener(){
+      koniec.addClickListener(new ClickListener()
+      {
 
          public void onClick(Widget sender)
          {
             // TODO Auto-generated method stub
 
-         }});
+         }
+      });
       panel.add(new Label("Oznacz jako:"));
       panel.add(poczatek);
       panel.add(koniec);
@@ -162,25 +165,22 @@ public class Client implements EntryPoint
          }
       });
 
-      map = new MapWidget(LatLng.newInstance(51.1078852, 17.0385376), 13);
+      map = new MapWidget(LatLng.newInstance(51.1078852, 17.0385376), 14);
       map.setSize("640px", "500px");
       map.addControl(new LargeMapControl());
       map.addControl(new MapTypeControl());
-      map.clearOverlays();
-   }
-
-   private Marker createMarker(LatLng point, final String text)
-   {
-      final Marker marker = new Marker(point);
-      marker.addMarkerClickHandler(new MarkerClickHandler()
+      map.setContinuousZoom(true);
+      map.setDoubleClickZoom(false);
+      map.setScrollWheelZoomEnabled(true);
+      map.addMapDoubleClickHandler(new MapDoubleClickHandler()
       {
-         public void onClick(MarkerClickEvent event)
+         public void onDoubleClick(MapDoubleClickEvent event)
          {
-            info = map.getInfoWindow();
-            info.open(marker, new InfoWindowContent(text));
+            map.panTo(event.getLatLng());
+            addSpotMarker(event.getLatLng());
          }
       });
-      return marker;
+      map.clearOverlays();
    }
 
    public void onModuleLoad()
@@ -193,7 +193,7 @@ public class Client implements EntryPoint
       upperPanel.add(address);
       upperPanel.add(submit);
 
-      final TextArea l = new TextArea();
+      l = new TextArea();
       l.setText("W tym miejcsu będzie TabPanel");
       l.setVisibleLines(50);
       l.setSize("150px", "100%");
