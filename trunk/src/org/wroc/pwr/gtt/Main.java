@@ -1,22 +1,19 @@
 package org.wroc.pwr.gtt;
 
-import java.sql.Time;
 import java.util.ArrayList;
 
 import org.wroc.pwr.gtt.server.DBconnector;
-import org.wroc.pwr.gtt.server.dbupdater.TTdownloader;
-import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
 import org.wroc.pwr.gtt.server.graphcreator.LineStop;
 
 /**
- * Aktualny, testowy, konsolowy main pokazuj¹cy co i jak na razie dzia³a albo i
- * nie dzia³a...
+ * Aktualny, testowy, konsolowy main pokazujï¿½cy co i jak na razie dziaï¿½a albo i
+ * nie dziaï¿½a...
  * 
- * @author Micha³ Brzeziñski-Spiczak
+ * @author Michaï¿½ Brzeziï¿½ski-Spiczak
  * 
  */
-public class Main { 
- 
+public class Main {
+
 	static String url = "http://www.wroclaw.pl/zdikzip/rozklady_xml.zip";
 	static String archName = "MPK.zip";
 	static String dir = "zdik";
@@ -30,37 +27,49 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		ArrayList<String> xmlFiles;
-		TTdownloader.download(url, archName); // pobieranie archiwum z
-		// rozk³adami z serwera
-		xmlFiles = TTdownloader.unzip(archName, dir); // rozpakowanie archiwum
-		// do odpowiedniego katalogu, zwraca liste nazw rozpakowanych plików
-		DBconnector connector = new DBconnector(driver, dbhost, dbName, userName, pasword); // nawi¹zanie
-		// po³¹czenia z baz¹
-		connector.updateDB(xmlFiles,tramCoFile,busCoFile); // update bazy danych wg plików xml
+		// ArrayList<String> xmlFiles;
+		// TTdownloader.download(url, archName); // pobieranie archiwum z
+		// rozkï¿½adami z serwera
+		// xmlFiles = TTdownloader.unzip(archName, dir); // rozpakowanie
+		// archiwum do odpowiedniego katalogu, zwraca liste nazw rozpakowanych
+		// plikï¿½w
+		DBconnector connector = new DBconnector(driver, dbhost, dbName,
+				userName, pasword); // nawiï¿½zanie poï¿½ï¿½czenia z bazï¿½
 
-		// ////////////////////wyszukiwanie po³¹czeñ z wydrukiem wszystkiego...
-		Time time = new Time(3, 25, 0);
-		ArrayList<ArrayList<LineStop>> sResult = connector.findCourse(4, connector.getPrzystId("eureka"), connector.getPrzystId("jana"), 10);
-	// sResult = connector.resultTimeUpdate(sResult, time, 1);
+		// connector.updateDB(xmlFiles,tramCoFile,busCoFile); // update bazy
+		// danych wg plikï¿½w xml
+
+		// ////////////////////wyszukiwanie poï¿½ï¿½czeï¿½ z wydrukiem wszystkiego...
+
+		ArrayList<ArrayList<LineStop>> sResult = connector.findCourse(true,
+				true, true, connector.getPrzystId("eureka"), connector
+						.getPrzystId("biskupin"), 10);
 		for (int i = 0; i < sResult.size(); i++) {
 			for (int k = 0; k < sResult.get(i).size(); k++) {
-				System.out.print("(" + connector.getLiniaNazwa(sResult.get(i).get(k).getLinia_id()) + ")");
-				System.out.print("[" + connector.getPrzystNazwa(sResult.get(i).get(k).getPrzystStart()) + " - ");
-				System.out.print(connector.getPrzystNazwa(sResult.get(i).get(k).getPrzystEnd()) + "(" + sResult.get(i).get(k).getTime() + ")]");
+				System.out.print("("
+						+ connector.getLiniaNazwa(sResult.get(i).get(k)
+								.getLinia_id()) + ")");
+				System.out.print("["
+						+ connector.getPrzystNazwa(sResult.get(i).get(k)
+								.getPrzystStart()) + " - ");
+				System.out.print(connector.getPrzystNazwa(sResult.get(i).get(k)
+						.getPrzystEnd())
+						+ "(" + sResult.get(i).get(k).getTime() + ")]");
 			}
-//			System.out.println();
+			System.out.println();
 		}
-		System.out.println(connector.getLinie());
-		System.out.println(connector.getWarianty("2"));
-		System.out.println(connector.getLiniaNazwa(2));
-		System.out.println(connector.getWariantNazwa(2));
-		System.out.println(connector.getTrasa(2));
-		// System.out.println(connector.getRozklad(1, "4"));
-		// System.out.println(connector.getNearest(35, 3, 1, time));
-		// System.out.println(connector.getChanges(14));
+		// System.out.println(connector.getLinie());
+		// System.out.println(connector.getWarianty("2"));
+		// System.out.println(connector.getLiniaNazwa(2));
+		// System.out.println(connector.getWariantNazwa(2));
+		// System.out.println(connector.getTrasa(2));
+		// // System.out.println(connector.getRozklad(1, "4"));
+		// // System.out.println(connector.getNearest(35, 3, 1, time));
+		// // System.out.println(connector.getChanges(14));
+		//		
+		// System.out.println("/////////////////////////");
+		// System.out.println(connector.distance(connector.getCoordinates(1),
+		// connector.getCoordinates(10)));
 
-	
-	
 	}
 }
