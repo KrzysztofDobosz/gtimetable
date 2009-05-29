@@ -34,7 +34,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 	public ArrayList<ArrayList<LineStop>> findCourse(int p1, int p2, int amount) {
 		ArrayList<ArrayList<LineStop>> result = new ArrayList<ArrayList<LineStop>>();
 
-		if (containsVertex(p1) && containsVertex(p2)) {
+		if (containsVertex(p1) && containsVertex(p2) && p1!=p2) {
 			KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(this, p1, amount);
 			ArrayList<GraphPath<Integer, WEdge>> a = new ArrayList<GraphPath<Integer, WEdge>>();
 

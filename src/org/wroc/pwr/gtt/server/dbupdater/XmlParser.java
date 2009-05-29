@@ -205,7 +205,8 @@ public class XmlParser {
 
 									}
 								}
-
+								
+								if (wariant_id.equals("1") || wariant_id.equals("2")){
 								s = stmt.executeQuery("Select linia_id, typ_id from Linia where linia_nazwa = '" + linia_nazwa + "' and wariant_id='"
 										+ wariant_id + "'");
 								s.next();
@@ -223,7 +224,7 @@ public class XmlParser {
 												+ linia_id + "','" + (w - q) + "', '" + typ_id + "')");
 									}
 								}
-							}
+							}}
 						}
 						System.out.print("...loaded___");
 						long time = System.currentTimeMillis() - start;
