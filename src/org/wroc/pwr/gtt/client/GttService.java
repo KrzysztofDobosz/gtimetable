@@ -4,7 +4,11 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.wroc.pwr.gtt.server.Coordinates;
+
+
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -32,4 +36,6 @@ public interface GttService extends RemoteService
    public ArrayList<String> getWarianty(String linia_nazwa);
    public ArrayList<Time> getNearest(int przyst_id, int linia_id, int dzien_id, Time start);
    public ArrayList<Integer> getChanges(int przyst_id);
+   public ArrayList<Integer> getLinie(int przyst_id);
+   public HashMap<Integer, ArrayList<Double>> getAllCoordinates();
 }

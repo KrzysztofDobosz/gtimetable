@@ -4,6 +4,10 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.wroc.pwr.gtt.server.Coordinates;
+
+
+import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public interface GttServiceAsync
@@ -21,4 +25,6 @@ public interface GttServiceAsync
    public void getWarianty(String linia_nazwa, AsyncCallback<ArrayList<String>> callback);
    public void getNearest(int przyst_id, int linia_id, int dzien_id, Time start, AsyncCallback<ArrayList<Time>> callback);
    public void getChanges(int przyst_id, AsyncCallback<ArrayList<Integer>> callback);
+   public void getLinie(int przyst_id, AsyncCallback<ArrayList<Integer>> callback);
+   public void getAllCoordinates(AsyncCallback<HashMap<Integer, ArrayList<Double>>> callback);
 }
