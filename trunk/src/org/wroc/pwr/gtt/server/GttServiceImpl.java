@@ -20,7 +20,7 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    static String dbName = "mysql";
    static String driver = "com.mysql.jdbc.Driver";
    static String userName = "root";
-   static String pasword = "pasword";
+   static String pasword = "password";
    static String tramCoFile = "tram.txt";
    static String busCoFile = "bus.txt";
    static DBconnector connector = new DBconnector(driver, dbhost, dbName,
@@ -31,7 +31,7 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       return connector.getChanges(przyst_id);
    }
 
-   public ArrayList<Integer> getLinie(int przyst_id)
+   public ArrayList<String> getLinie(int przyst_id)
    {
       return connector.getLinie(przyst_id);
    }
@@ -39,6 +39,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    public int getLiniaId(String nazwa)
    {
       return connector.getLiniaId(nazwa);
+   }
+
+   public int getLiniaId(String nazwa, String variant)
+   {
+      return connector.getLiniaId(nazwa, variant);
    }
 
    public String getLiniaNazwa(int linia_id)
@@ -60,6 +65,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    public int getPrzystId(String nazwa)
    {
       return connector.getPrzystId(nazwa);
+   }
+
+   public ArrayList<Integer> getPrzystIds(String nazwa)
+   {
+      return connector.getPrzystIds(nazwa);
    }
 
    public String getPrzystNazwa(int przyst_id)

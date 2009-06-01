@@ -39,7 +39,6 @@ public class DBconnector
 {
    Connection conn = null;
    XmlParser parser = new XmlParser();
-   Statement stmt;
 
    String driver;
    String host;
@@ -69,9 +68,6 @@ public class DBconnector
       {
          Class.forName(driver).newInstance();
          conn = DriverManager.getConnection(host + dbName, userName, pasword);
-         stmt = conn.createStatement();
-         stmt.execute("use gtt");
-         ResultSet rs;
       }
       catch (InstantiationException e)
       {
@@ -109,8 +105,8 @@ public class DBconnector
 
       try
       {
-
          String[] createStatement = readFileAsString("create.sql").split("\\n");
+         Statement stmt = conn.createStatement();
          for (int i = 0; i < createStatement.length; i++)
          {
             System.out.println(createStatement[i]);
@@ -312,7 +308,7 @@ public class DBconnector
       }
       try
       {
-
+         Statement stmt = conn.createStatement();
          ResultSet rs = stmt.executeQuery("Select przyst_id from Przystanek");
          while (rs.next())
             graph.addVertex(rs.getInt("przyst_id"));
@@ -355,6 +351,7 @@ public class DBconnector
       String nazwa = null;
       try
       {
+         Statement stmt = conn.createStatement();
          ResultSet s = stmt
                .executeQuery("Select przyst_nazwa from Przystanek where przyst_id='"
                      + przyst_id + "'");
@@ -380,6 +377,7 @@ public class DBconnector
       String nazwa = null;
       try
       {
+         Statement stmt = conn.createStatement();
          ResultSet s = stmt
                .executeQuery("Select linia_nazwa from Linia where linia_id='"
                      + linia_id + "'");
@@ -405,6 +403,7 @@ public class DBconnector
       int id = -1;
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("Select przyst_id from Przystanek where przyst_nazwa like('%"
@@ -417,7 +416,32 @@ public class DBconnector
          e.printStackTrace();
       }
       return id;
+   }
 
+   /**
+    * zwraca id przystankow o zadanej nazwie
+    *
+    * @param nazwa
+    * @return
+    */
+   public ArrayList<Integer> getPrzystIds(String nazwa)
+   {
+      ArrayList<Integer> ids = new ArrayList<Integer>();
+      try
+      {
+         Statement stmt = conn.createStatement();
+         stmt.execute("use gtt");
+         ResultSet s = stmt
+               .executeQuery("Select przyst_id from Przystanek where przyst_nazwa like('%"
+                     + nazwa + "%')");
+         while (s.next())
+            ids.add(s.getInt("przyst_id"));
+      }
+      catch (SQLException e)
+      {
+         e.printStackTrace();
+      }
+      return ids;
    }
 
    /**
@@ -431,12 +455,40 @@ public class DBconnector
       int id = -1;
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("Select linia_id from Linia where linia_nazwa='"
                      + nazwa + "' and wariant_id=1 limit 1");
          while (s.next())
-            id = s.getInt(1);
+            id = s.getInt("linia_id");
+      }
+      catch (SQLException e)
+      {
+         e.printStackTrace();
+      }
+      return id;
+
+   }
+
+   /**
+    * zwraca id lini o zadanej nazwie i wariancie
+    *
+    * @param nazwa
+    * @return
+    */
+   public int getLiniaId(String nazwa, String variant)
+   {
+      int id = -1;
+      try
+      {
+         Statement stmt = conn.createStatement();
+         stmt.execute("use gtt");
+         ResultSet s = stmt
+               .executeQuery("Select linia_id from Linia where linia_nazwa='"
+                     + nazwa + "' and wariant_nazwa='" + variant + "' limit 1");
+         while (s.next())
+            id = s.getInt("linia_id");
       }
       catch (SQLException e)
       {
@@ -458,6 +510,7 @@ public class DBconnector
 
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select distinct przyst_id from Rozklad where linia_id='"
@@ -490,6 +543,7 @@ public class DBconnector
       HashMap<Integer, ArrayList<Time>> timeTable = new HashMap<Integer, ArrayList<Time>>();
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select przyst_nazwa,linia_nazwa, linia_id, dzien_nazwa, dzien_id, czas from Rozklad join (select linia_id, linia_nazwa from Linia where linia_nazwa='"
@@ -503,7 +557,6 @@ public class DBconnector
             {
                timeTable.put(s.getInt("dzien_id"), new ArrayList<Time>());
             }
-
             timeTable.get(s.getInt("dzien_id")).add((Time) s.getObject("czas"));
          }
       }
@@ -526,6 +579,7 @@ public class DBconnector
       HashMap<Integer, ArrayList<String>> lines = new HashMap<Integer, ArrayList<String>>();
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select distinct linia_nazwa, typ_id from Linia");
@@ -557,6 +611,7 @@ public class DBconnector
       String typ_nazwa = null;
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select typ_nazwa from Typ where typ_id='"
@@ -565,7 +620,6 @@ public class DBconnector
          {
             typ_nazwa = s.getString("typ_nazwa");
          }
-
       }
       catch (SQLException e)
       {
@@ -587,6 +641,7 @@ public class DBconnector
       String typ_nazwa = null;
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select wariant_nazwa from Linia where linia_id='"
@@ -595,7 +650,6 @@ public class DBconnector
          {
             typ_nazwa = s.getString("wariant_nazwa");
          }
-
       }
       catch (SQLException e)
       {
@@ -618,6 +672,7 @@ public class DBconnector
 
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select wariant_nazwa from Linia where linia_nazwa='"
@@ -626,7 +681,6 @@ public class DBconnector
          {
             warianty.add(s.getString("wariant_nazwa"));
          }
-
       }
       catch (SQLException e)
       {
@@ -648,6 +702,7 @@ public class DBconnector
       Coordinates wsp = null;
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select lat,lng from Przystanek where przyst_id='"
@@ -656,7 +711,6 @@ public class DBconnector
          {
             wsp = new Coordinates(s.getDouble("lat"), s.getDouble("lng"));
          }
-
       }
       catch (SQLException e)
       {
@@ -677,7 +731,7 @@ public class DBconnector
       HashMap<Integer, ArrayList<Double>> stations = new HashMap<Integer, ArrayList<Double>>();
       try
       {
-         stmt.execute("use gtt");
+         Statement stmt = conn.createStatement();
          ResultSet s = stmt
                .executeQuery("select przyst_id,lat,lng from Przystanek where lat is not null");
          while (s.next())
@@ -712,6 +766,7 @@ public class DBconnector
       ArrayList<Time> time = new ArrayList<Time>();
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("select czas from Rozklad where linia_id='"
@@ -722,7 +777,6 @@ public class DBconnector
          {
             time.add((Time) s.getObject("czas"));
          }
-
       }
       catch (SQLException e)
       {
@@ -744,6 +798,7 @@ public class DBconnector
       ArrayList<Integer> list = new ArrayList<Integer>();
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
                .executeQuery("Select distinct linia_id from Rozklad join (select przyst_id from Przystanek where przyst_nazwa=(select przyst_nazwa from Przystanek where przyst_id='"
@@ -752,7 +807,6 @@ public class DBconnector
          {
             list.add(s.getInt("linia_id"));
          }
-
       }
       catch (SQLException e)
       {
@@ -765,25 +819,26 @@ public class DBconnector
    }
 
    /**
-    * zwraca linie jadace przez (lista id lini) zadany przystanek
+    * zwraca nazwy linii jadacych przez zadany przystanek
     *
     * @param przyst_id
     * @return
     */
-   public ArrayList<Integer> getLinie(int przyst_id)
+   public ArrayList<String> getLinie(int przyst_id)
    {
-      ArrayList<Integer> list = new ArrayList<Integer>();
+      ArrayList<String> list = new ArrayList<String>();
       try
       {
+         Statement stmt = conn.createStatement();
          stmt.execute("use gtt");
          ResultSet s = stmt
-               .executeQuery("Select distinct linia_id from Rozklad where przyst_id='"
-                     + przyst_id + "'");
+               .executeQuery("SELECT distinct linia_nazwa from Linia join" +
+               		" (select linia_id from Rozklad where przyst_id='" +
+               		przyst_id + "') S on Linia.linia_id = S.linia_id");
          while (s.next())
          {
-            list.add(s.getInt("linia_id"));
+            list.add(s.getString("linia_nazwa"));
          }
-
       }
       catch (SQLException e)
       {
@@ -791,7 +846,6 @@ public class DBconnector
          e.printStackTrace();
 
       }
-      Collections.sort(list);
       return list;
    }
 
@@ -812,6 +866,7 @@ public class DBconnector
       ResultSet rs;
       try
       {
+         Statement stmt = conn.createStatement();
          rs = stmt.executeQuery("select przyst_id, lat, lng from Przystanek");
          while (rs.next())
          {

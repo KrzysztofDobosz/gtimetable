@@ -12,6 +12,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.DecoratorPanel;
@@ -22,6 +23,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PushButton;
@@ -67,11 +69,13 @@ public class Client implements EntryPoint
    private TextBox stationSearch;
    private Button lineSubmit;
    private SuggestBox lineSearch;
+   private ListBox variantList;
    private Geocoder geocoder;
    private InfoWindow info;
    private ArrayList<Integer> stationsIds;
    private ArrayList<LatLng> stationsCoords;
    private ArrayList<Marker> currentStations;
+   private VerticalPanel route;
    private Marker startSpot;
    private Marker endSpot;
 
@@ -95,17 +99,89 @@ public class Client implements EntryPoint
 
    private void findStation()
    {
-      ;
+      for (Marker m : currentStations)
+      {
+         map.removeOverlay(m);
+      }
+      route.clear();
+      if (stationSearch.getText().length() < 3)
+      {
+         Window.alert("Nazwa przystanku powinna mieć przynajmniej 3 znaki.");
+         return;
+      }
+      service.getPrzystIds(stationSearch.getText(),
+            new AsyncCallback<ArrayList<Integer>>()
+            {
+               public void onFailure(Throwable caught)
+               {
+                  Window
+                        .alert("Failed to fetch station ids for given station name. "
+                              + caught.getMessage());
+               }
+
+               public void onSuccess(ArrayList<Integer> result)
+               {
+                  for (int i = 0; i < result.size(); i++)
+                  {
+                     Integer id = result.get(i);
+                     if (stationsIds.contains(id))
+                     {
+                        addStationMarker(id, stationsCoords.get(stationsIds
+                              .indexOf(id)));
+                     }
+                  }
+               }
+            });
    }
 
    private void showLine()
    {
-      ;
+      for (Marker m : currentStations)
+      {
+         map.removeOverlay(m);
+      }
+      route.clear();
+      service.getLiniaId(lineSearch.getText(), variantList.getValue(variantList
+            .getSelectedIndex()), new AsyncCallback<Integer>()
+      {
+         public void onFailure(Throwable caught)
+         {
+            Window
+                  .alert("Failed to fetch lines id for given name and variant. "
+                        + caught.getMessage());
+         }
+
+         public void onSuccess(Integer result)
+         {
+            service.getTrasa(result, new AsyncCallback<ArrayList<Integer>>()
+            {
+               public void onFailure(Throwable caught)
+               {
+                  Window
+                        .alert("Failed to fetch stations' ids for given line id. "
+                              + caught.getMessage());
+               }
+
+               public void onSuccess(ArrayList<Integer> result)
+               {
+                  for (int i = 0; i < result.size(); i++)
+                  {
+                     Integer id = result.get(i);
+                     if (stationsIds.contains(id))
+                     {
+                        addStationMarker(id, stationsCoords.get(stationsIds
+                              .indexOf(id)));
+                     }
+                  }
+               }
+            });
+         }
+      });
    }
 
    private void addSpotMarker(LatLng point)
    {
-      map.setCenter(point);
+      map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
       options.setDraggable(true);
       Icon icon = Icon
@@ -154,6 +230,27 @@ public class Client implements EntryPoint
                {
                   addSpotMarker(point);
                }
+               if (stationsCoords.contains(point) == false)
+               {
+                  addSpotMarker(point);
+               }
+               else
+               {
+                  boolean isCurrent = false;
+                  for (int i = 0; i < currentStations.size(); i++)
+                  {
+                     if (currentStations.get(i).getLatLng() == point)
+                     {
+                        isCurrent = true;
+                        break;
+                     }
+                  }
+                  if (isCurrent)
+                  {
+                     addStationMarker(stationsIds.get(stationsCoords
+                           .indexOf(point)), point);
+                  }
+               }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
@@ -172,6 +269,27 @@ public class Client implements EntryPoint
                if (stationsCoords.contains(point) == false)
                {
                   addSpotMarker(point);
+               }
+               if (stationsCoords.contains(point) == false)
+               {
+                  addSpotMarker(point);
+               }
+               else
+               {
+                  boolean isCurrent = false;
+                  for (int i = 0; i < currentStations.size(); i++)
+                  {
+                     if (currentStations.get(i).getLatLng() == point)
+                     {
+                        isCurrent = true;
+                        break;
+                     }
+                  }
+                  if (isCurrent)
+                  {
+                     addStationMarker(stationsIds.get(stationsCoords
+                           .indexOf(point)), point);
+                  }
                }
             }
             LatLng point = marker.getLatLng();
@@ -231,7 +349,7 @@ public class Client implements EntryPoint
          return;
       }
       final Integer przyst_id = stationId;
-      map.setCenter(point);
+      map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://labs.google.com/ridefinder/images/mm_20_blue.png");
@@ -247,6 +365,8 @@ public class Client implements EntryPoint
       final VerticalPanel panel = new VerticalPanel();
 
       final Label name = new Label("");
+      final Label station = new Label("");
+      route.add(station);
       panel.add(name);
       service.getPrzystNazwa(stationId, new AsyncCallback<String>()
       {
@@ -259,46 +379,32 @@ public class Client implements EntryPoint
          public void onSuccess(String result)
          {
             name.setText(result);
+            station.setText(result);
          }
       });
 
       final HorizontalPanel lines = new HorizontalPanel();
-      service.getLinie(stationId, new AsyncCallback<ArrayList<Integer>>()
+      service.getLinie(stationId, new AsyncCallback<ArrayList<String>>()
       {
          public void onFailure(Throwable caught)
          {
             Window.alert("Failed to fetch lines. " + caught.getMessage());
          }
 
-         public void onSuccess(ArrayList<Integer> result)
+         public void onSuccess(ArrayList<String> result)
          {
-            for (Integer lineId : result)
+            for (String lineName : result)
             {
-               final Integer linia_id = lineId;
-               final Label lineName = new Label("");
-               lines.add(lineName);
-               lines.add(new Label(", "));
-               service.getLiniaNazwa(lineId, new AsyncCallback<String>()
+               Label lineN = new Label(lineName);
+               lines.add(lineN);
+               lineN.addClickListener(new ClickListener()
                {
-                  public void onFailure(Throwable caught)
+                  public void onClick(Widget sender)
                   {
-                     Window.alert("Failed to fetch line name. "
-                           + caught.getMessage());
-                  }
-
-                  public void onSuccess(String result)
-                  {
-                     lineName.setText(result);
-                     lineName.addClickListener(new ClickListener()
-                     {
-                        public void onClick(Widget sender)
-                        {
-                           // TODO: wyswietl okienko z rozkladem na podstawie
-                           // przyst_id i linia_id
-                        }
-                     });
+                     // ((Label) sender).getText();
                   }
                });
+               lines.add(new Label(", "));
             }
             lines.remove(2 * result.size() - 1);
          }
@@ -319,6 +425,23 @@ public class Client implements EntryPoint
                {
                   addSpotMarker(point);
                }
+               else
+               {
+                  boolean isCurrent = false;
+                  for (int i = 0; i < currentStations.size(); i++)
+                  {
+                     if (currentStations.get(i).getLatLng() == point)
+                     {
+                        isCurrent = true;
+                        break;
+                     }
+                  }
+                  if (isCurrent)
+                  {
+                     addStationMarker(stationsIds.get(stationsCoords
+                           .indexOf(point)), point);
+                  }
+               }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
@@ -337,6 +460,23 @@ public class Client implements EntryPoint
                if (stationsCoords.contains(point) == false)
                {
                   addSpotMarker(point);
+               }
+               else
+               {
+                  boolean isCurrent = false;
+                  for (int i = 0; i < currentStations.size(); i++)
+                  {
+                     if (currentStations.get(i).getLatLng() == point)
+                     {
+                        isCurrent = true;
+                        break;
+                     }
+                  }
+                  if (isCurrent)
+                  {
+                     addStationMarker(stationsIds.get(stationsCoords
+                           .indexOf(point)), point);
+                  }
                }
             }
             LatLng point = marker.getLatLng();
@@ -357,16 +497,23 @@ public class Client implements EntryPoint
             info.open(marker, content);
          }
       });
+      station.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            map.panTo(marker.getLatLng());
+            info = map.getInfoWindow();
+            info.open(marker, content);
+         }
+      });
 
       map.addOverlay(marker);
-      info = map.getInfoWindow();
-      info.open(marker, content);
       currentStations.add(marker);
    }
 
    private void addStartMarker(LatLng point)
    {
-      map.setCenter(point);
+      map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
       options.setDraggable(true);
       Icon icon = Icon
@@ -414,19 +561,39 @@ public class Client implements EntryPoint
             {
                addSpotMarker(point);
             }
+            else
+            {
+               boolean isCurrent = false;
+               for (int i = 0; i < currentStations.size(); i++)
+               {
+                  if (currentStations.get(i).getLatLng() == point)
+                  {
+                     isCurrent = true;
+                     break;
+                  }
+               }
+               if (isCurrent)
+               {
+                  addStationMarker(stationsIds.get(stationsCoords
+                        .indexOf(point)), point);
+               }
+            }
          }
       });
       panel.add(anuluj);
       panel.add(new Label("\n"));
-      final Label usun = new Label("Usuń");
-      usun.addClickListener(new ClickListener()
+      if (stationsCoords.contains(point) == false)
       {
-         public void onClick(Widget sender)
+         final Label usun = new Label("Usuń");
+         usun.addClickListener(new ClickListener()
          {
-            map.removeOverlay(marker);
-         }
-      });
-      panel.add(usun);
+            public void onClick(Widget sender)
+            {
+               map.removeOverlay(marker);
+            }
+         });
+         panel.add(usun);
+      }
 
       final InfoWindowContent content = new InfoWindowContent(panel);
       marker.addMarkerClickHandler(new MarkerClickHandler()
@@ -462,7 +629,7 @@ public class Client implements EntryPoint
 
    private void addEndMarker(LatLng point)
    {
-      map.setCenter(point);
+      map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
       options.setDraggable(true);
       Icon icon = Icon
@@ -506,21 +673,43 @@ public class Client implements EntryPoint
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
             endSpot = null;
-            // jesli to nie byl przystanek
-            addSpotMarker(point);
+            if (stationsCoords.contains(point) == false)
+            {
+               addSpotMarker(point);
+            }
+            else
+            {
+               boolean isCurrent = false;
+               for (int i = 0; i < currentStations.size(); i++)
+               {
+                  if (currentStations.get(i).getLatLng() == point)
+                  {
+                     isCurrent = true;
+                     break;
+                  }
+               }
+               if (isCurrent)
+               {
+                  addStationMarker(stationsIds.get(stationsCoords
+                        .indexOf(point)), point);
+               }
+            }
          }
       });
       panel.add(anuluj);
       panel.add(new Label("\n"));
-      final Label usun = new Label("Usuń");
-      usun.addClickListener(new ClickListener()
+      if (stationsCoords.contains(point) == false)
       {
-         public void onClick(Widget sender)
+         final Label usun = new Label("Usuń");
+         usun.addClickListener(new ClickListener()
          {
-            map.removeOverlay(marker);
-         }
-      });
-      panel.add(usun);
+            public void onClick(Widget sender)
+            {
+               map.removeOverlay(marker);
+            }
+         });
+         panel.add(usun);
+      }
 
       final InfoWindowContent content = new InfoWindowContent(panel);
       marker.addMarkerClickHandler(new MarkerClickHandler()
@@ -561,6 +750,7 @@ public class Client implements EntryPoint
       stationsIds = new ArrayList<Integer>();
       stationsCoords = new ArrayList<LatLng>();
       currentStations = new ArrayList<Marker>();
+      route = new VerticalPanel();
 
       stationSearch = new TextBox();
       stationSearch.addKeyboardListener(new KeyboardListenerAdapter()
@@ -584,18 +774,34 @@ public class Client implements EntryPoint
 
       final MultiWordSuggestOracle oracle = new MultiWordSuggestOracle();
       lineSearch = new SuggestBox(oracle);
-      lineSubmit = new Button("Pokaż");
       lineSearch.addKeyboardListener(new KeyboardListenerAdapter()
       {
          public void onKeyPress(Widget sender, char keyCode, int modifiers)
          {
             if (keyCode == (char) KEY_ENTER)
             {
-               showLine();
-               System.out.println("pressed");
+               variantList.clear();
+               service.getWarianty(lineSearch.getText(),
+                     new AsyncCallback<ArrayList<String>>()
+                     {
+                        public void onFailure(Throwable caught)
+                        {
+                           Window.alert("Failed to fetch variants. "
+                                 + caught.getMessage());
+                        }
+
+                        public void onSuccess(ArrayList<String> result)
+                        {
+                           for (int i = 0; i < result.size(); i++)
+                           {
+                              variantList.addItem(result.get(i));
+                           }
+                        }
+                     });
             }
          }
       });
+      lineSubmit = new Button("Pokaż");
       lineSubmit.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
@@ -603,6 +809,7 @@ public class Client implements EntryPoint
             showLine();
          }
       });
+      variantList = new ListBox(false);
 
       addressSearch = new TextBox();
       addressSearch.addKeyboardListener(new KeyboardListenerAdapter()
@@ -637,7 +844,7 @@ public class Client implements EntryPoint
          {
             if (event.getOverlay() == null)
             {
-               //System.out.println(event.getLatLng().getLatitude());
+               // System.out.println(event.getLatLng().getLatitude());
             }
          }
       });
@@ -713,12 +920,7 @@ public class Client implements EntryPoint
 
       ScrollPanel scroll = new ScrollPanel();
       scroll.setSize("190px", "300px");
-      VerticalPanel test = new VerticalPanel();
-      scroll.setWidget(test);
-      for (int i = 0; i < 50; i++)
-      {
-         test.add(new Label("A" + (new Integer(i)).toString()));
-      }
+      scroll.setWidget(route);
       center.add(scroll, 41, 295);
 
       center.add(new HTML("<small>wyszukaj przystanek:</small>"), 294, 528);
@@ -731,6 +933,11 @@ public class Client implements EntryPoint
       center.add(new HTML("<small>dostępne linie:</small>"), 294, 558);
       lineSearch.setLimit(4);
       center.add(lineSearch, 420, 554);
+      lineSubmit.setPixelSize(57, 19);
+      lineSubmit.addStyleDependentName("station");
+      center.add(lineSubmit, 590, 554);
+      variantList.setWidth("140px");
+      center.add(variantList, 420, 584);
 
       mainPanel.add(center);
 
