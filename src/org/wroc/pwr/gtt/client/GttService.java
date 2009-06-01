@@ -27,7 +27,9 @@ public interface GttService extends RemoteService
    public String getPrzystNazwa(int przyst_id);
    public String getLiniaNazwa(int linia_id);
    public int getPrzystId(String nazwa);
+   public ArrayList<Integer> getPrzystIds(String nazwa);
    public int getLiniaId(String nazwa);
+   public int getLiniaId(String nazwa, String variant);
    public ArrayList<Integer> getTrasa(int linia_id);
    public HashMap<Integer, ArrayList<Time>> getRozklad(int przyst_id, String linia);
    public HashMap<Integer, ArrayList<String>> getLinie();
@@ -36,6 +38,6 @@ public interface GttService extends RemoteService
    public ArrayList<String> getWarianty(String linia_nazwa);
    public ArrayList<Time> getNearest(int przyst_id, int linia_id, int dzien_id, Time start);
    public ArrayList<Integer> getChanges(int przyst_id);
-   public ArrayList<Integer> getLinie(int przyst_id);
+   public ArrayList<String> getLinie(int przyst_id);
    public HashMap<Integer, ArrayList<Double>> getAllCoordinates();
 }

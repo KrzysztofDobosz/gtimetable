@@ -4,6 +4,9 @@
 .gwt-SuggestBox {
   border: 1px solid #000000;
 }
+.gwt-ListBox {
+  border: 1px solid #000000;
+}
 .gwt-Button-station {
   margin: 0px;
   padding: 1px 4px;
