@@ -314,7 +314,7 @@ public class DBconnector
             graph.addVertex(rs.getInt("przyst_id"));
 
          rs = stmt
-               .executeQuery("Select graf_id, ps_id, pe_id, linia_id, waga,graf.typ_id, wariant_id from Graf join Linia using(linia_id) where wariant_id<3");
+               .executeQuery("Select graf_id, ps_id, pe_id, linia_id, waga, Graf.typ_id, wariant_id from Graf join Linia using(linia_id) where wariant_id<3");
 
          while (rs.next())
          {
@@ -550,7 +550,7 @@ public class DBconnector
                      + linia
                      + "') as l using(linia_id) join (select przyst_id, przyst_nazwa from Przystanek where przyst_id='"
                      + przyst_id
-                     + "') as p using(przyst_id) join dzien using(dzien_id);");
+                     + "') as p using(przyst_id) join Dzien using(dzien_id);");
          while (s.next())
          {
             if (!timeTable.containsKey(s.getInt("dzien_id")))
