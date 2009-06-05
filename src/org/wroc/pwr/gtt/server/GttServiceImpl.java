@@ -31,76 +31,76 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       return connector.getChanges(przyst_id);
    }
 
-   public ArrayList<String> getLinie(int przyst_id)
+   public ArrayList<String> getLinesViaStop(int przyst_id)
    {
-      return connector.getLinie(przyst_id);
+      return connector.getLinesViaStop(przyst_id);
    }
 
-   public int getLiniaId(String nazwa)
+   public int getLineId(String nazwa)
    {
-      return connector.getLiniaId(nazwa);
+      return connector.getLineId(nazwa);
    }
 
-   public int getLiniaId(String nazwa, String variant)
+   public int getLineId(String nazwa, String variant)
    {
-      return connector.getLiniaId(nazwa, variant);
+      return connector.getLineId(nazwa, variant);
    }
 
-   public String getLiniaNazwa(int linia_id)
+   public String getLineName(int linia_id)
    {
-      return connector.getLiniaNazwa(linia_id);
+      return connector.getLineName(linia_id);
    }
 
-   public HashMap<Integer, ArrayList<String>> getLinie()
+   public HashMap<Integer, ArrayList<String>> getLines()
    {
-      return connector.getLinie();
+      return connector.getLines();
    }
 
-   public ArrayList<Time> getNearest(int przyst_id, int linia_id, int dzien_id,
+   public ArrayList<Time> getNearestDeparture(int przyst_id, int linia_id, int dzien_id,
          Time start)
    {
-      return connector.getNearest(przyst_id, linia_id, dzien_id, start);
+      return connector.getNearestDeparture(przyst_id, linia_id, dzien_id, start);
    }
 
-   public int getPrzystId(String nazwa)
+   public int getStopId(String nazwa)
    {
-      return connector.getPrzystId(nazwa);
+      return connector.getStopId(nazwa);
    }
 
-   public ArrayList<Integer> getPrzystIds(String nazwa)
+   public ArrayList<Integer> getStopIds(String nazwa)
    {
-      return connector.getPrzystIds(nazwa);
+      return connector.getStopIds(nazwa);
    }
 
-   public String getPrzystNazwa(int przyst_id)
+   public String getStopName(int przyst_id)
    {
-      return connector.getPrzystNazwa(przyst_id);
+      return connector.getStopName(przyst_id);
    }
 
-   public HashMap<Integer, ArrayList<Time>> getRozklad(int przyst_id,
+   public HashMap<Integer, ArrayList<Time>> getStopLineTable(int przyst_id,
          String linia)
    {
-      return connector.getRozklad(przyst_id, linia);
+      return connector.getStopLineTable(przyst_id, linia);
    }
 
-   public ArrayList<Integer> getTrasa(int linia_id)
+   public ArrayList<Integer> getLineRoute(int linia_id)
    {
-      return connector.getTrasa(linia_id);
+      return connector.getLineRoute(linia_id);
    }
 
-   public String getTypNazwa(int typ_id)
+   public String getTypeName(int typ_id)
    {
-      return connector.getTypNazwa(typ_id);
+      return connector.getTypeName(typ_id);
    }
 
-   public String getWariantNazwa(int linia_id)
+   public String getVersionName(int linia_id)
    {
-      return connector.getWariantNazwa(linia_id);
+      return connector.getVersionName(linia_id);
    }
 
-   public ArrayList<String> getWarianty(String linia_nazwa)
+   public ArrayList<String> getVersions(String linia_nazwa)
    {
-      return connector.getWarianty(linia_nazwa);
+      return connector.getVersions(linia_nazwa);
    }
 
    public HashMap<Integer, ArrayList<Double>> getAllCoordinates()

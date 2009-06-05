@@ -109,7 +109,7 @@ public class Client implements EntryPoint
          Window.alert("Nazwa przystanku powinna mieć przynajmniej 3 znaki.");
          return;
       }
-      service.getPrzystIds(stationSearch.getText(),
+      service.getStopIds(stationSearch.getText(),
             new AsyncCallback<ArrayList<Integer>>()
             {
                public void onFailure(Throwable caught)
@@ -141,7 +141,7 @@ public class Client implements EntryPoint
          map.removeOverlay(m);
       }
       route.clear();
-      service.getLiniaId(lineSearch.getText(), variantList.getValue(variantList
+      service.getLineId(lineSearch.getText(), variantList.getValue(variantList
             .getSelectedIndex()), new AsyncCallback<Integer>()
       {
          public void onFailure(Throwable caught)
@@ -153,7 +153,7 @@ public class Client implements EntryPoint
 
          public void onSuccess(Integer result)
          {
-            service.getTrasa(result, new AsyncCallback<ArrayList<Integer>>()
+            service.getLineRoute(result, new AsyncCallback<ArrayList<Integer>>()
             {
                public void onFailure(Throwable caught)
                {
@@ -368,7 +368,7 @@ public class Client implements EntryPoint
       final Label station = new Label("");
       route.add(station);
       panel.add(name);
-      service.getPrzystNazwa(stationId, new AsyncCallback<String>()
+      service.getStopName(stationId, new AsyncCallback<String>()
       {
          public void onFailure(Throwable caught)
          {
@@ -384,7 +384,7 @@ public class Client implements EntryPoint
       });
 
       final HorizontalPanel lines = new HorizontalPanel();
-      service.getLinie(stationId, new AsyncCallback<ArrayList<String>>()
+      service.getLinesViaStop(stationId, new AsyncCallback<ArrayList<String>>()
       {
          public void onFailure(Throwable caught)
          {
@@ -781,7 +781,7 @@ public class Client implements EntryPoint
             if (keyCode == (char) KEY_ENTER)
             {
                variantList.clear();
-               service.getWarianty(lineSearch.getText(),
+               service.getVersions(lineSearch.getText(),
                      new AsyncCallback<ArrayList<String>>()
                      {
                         public void onFailure(Throwable caught)
@@ -879,7 +879,7 @@ public class Client implements EntryPoint
                   }
                }
             });
-      service.getLinie(new AsyncCallback<HashMap<Integer, ArrayList<String>>>()
+      service.getLines(new AsyncCallback<HashMap<Integer, ArrayList<String>>>()
       {
          public void onFailure(Throwable caught)
          {

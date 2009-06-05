@@ -11,7 +11,7 @@ import org.jgrapht.GraphPath;
  *
  * @param <T>
  */
-public class CComparator<T> implements Comparator<T> {
+public class RouteComparator<T> implements Comparator<T> {
 	public int compare(Object obj1, Object obj2) {
 		GraphPath<Integer, WEdge> emp1 = (GraphPath<Integer, WEdge>) obj1;
 		GraphPath<Integer, WEdge> emp2 = (GraphPath<Integer, WEdge>) obj2;
@@ -26,7 +26,7 @@ public class CComparator<T> implements Comparator<T> {
 	public static int changes(List<WEdge> list) {
 		int am = 0;
 		for (int i = 1; i < list.size(); i++) {
-			if (list.get(i).label != list.get(i - 1).label)
+			if (list.get(i).line_id != list.get(i - 1).line_id)
 				am++;
 
 		}
@@ -37,7 +37,7 @@ public class CComparator<T> implements Comparator<T> {
 	public static int edgeWeight(List<WEdge> edgeList) {
 		int sumweight = 0;
 		for (int i = 0; i < edgeList.size(); i++)
-			sumweight += edgeList.get(i).waga;
+			sumweight += edgeList.get(i).stop_distance;
 		return sumweight;
 
 	}
