@@ -42,64 +42,64 @@ public class XmlParser {
 				for (int i = 0; i < lineNodes.getLength(); i++) {
 					Node line = lineNodes.item(i);
 					if (line.getNodeName().equals("linia")) {
-						String linia_nazwa = line.getAttributes().getNamedItem("nazwa").getNodeValue();
-						linia_nazwa= linia_nazwa.replaceAll(" ", "");
-						System.out.print("LINIA " + linia_nazwa + " ...");
+						String line_name = line.getAttributes().getNamedItem("nazwa").getNodeValue();
+						line_name= line_name.replaceAll(" ", "");
+						System.out.print("LINIA " + line_name + " ...");
 						long start = System.currentTimeMillis();
-						String wazny_od = line.getAttributes().getNamedItem("wazny_od").getNodeValue();
+						String valid_from = line.getAttributes().getNamedItem("wazny_od").getNodeValue();
 
-						if (wazny_od.length() < 9)
-							wazny_od = "NULL";
+						if (valid_from.length() < 9)
+							valid_from = "NULL";
 						else
-							wazny_od = toSQLDate(wazny_od);
+							valid_from = toSQLDate(valid_from);
 
-						String wazny_do = line.getAttributes().getNamedItem("wazny_do").getNodeValue();
-						if (wazny_do.length() < 9)
-							wazny_do = "NULL";
+						String valid_to = line.getAttributes().getNamedItem("wazny_do").getNodeValue();
+						if (valid_to.length() < 9)
+							valid_to = "NULL";
 
 						else
-							wazny_do = toSQLDate(wazny_do);
+							valid_to = toSQLDate(valid_to);
 
-						String typ = line.getAttributes().getNamedItem("typ").getNodeValue();
+						String type = line.getAttributes().getNamedItem("typ").getNodeValue();
 						// update DB - typ
-						s = stmt.executeQuery("SELECT count(*) from Typ where typ_nazwa = '" + typ + "'");
+						s = stmt.executeQuery("SELECT count(*) from Type where type_name = '" + type + "'");
 						s.next();
 						if (s.getInt(1) == 0)
-							stmt.executeUpdate("INSERT INTO Typ (typ_nazwa)" + " VALUES('" + typ + "')");
+							stmt.executeUpdate("INSERT INTO Type (type_name)" + " VALUES('" + type + "')");
 
 						NodeList versionNodes = line.getChildNodes();
 						for (int k = 0; k < versionNodes.getLength(); k++) {
 							Node version = versionNodes.item(k);
 							if (version.getNodeName().equals("wariant")) {
-								String wariant_nazwa = version.getAttributes().getNamedItem("nazwa").getNodeValue();
-								String wariant_id = version.getAttributes().getNamedItem("id").getNodeValue();
+								String version_name = version.getAttributes().getNamedItem("nazwa").getNodeValue();
+								String version_id = version.getAttributes().getNamedItem("id").getNodeValue();
 
 								// update DB - LINIA
-								stmt.executeUpdate("INSERT INTO Linia (linia_nazwa, wariant_id, wariant_nazwa, typ_id, wazny_od, wazny_do)" + " VALUES('"
-										+ linia_nazwa + "', '" + wariant_id + "', '" + wariant_nazwa + "', " + "(SELECT typ_id from Typ where typ_nazwa='"
-										+ typ + "'), " + wazny_od + ", " + wazny_do
+								stmt.executeUpdate("INSERT INTO Line (line_name, version_id, version_name, type_id, valid_from, valid_to)" + " VALUES('"
+										+ line_name + "', '" + version_id + "', '" + version_name + "', " + "(SELECT type_id from Type where type_name='"
+										+ type + "'), " + valid_from + ", " + valid_to
 
 										+ ")");
-								ArrayList<Integer> przyst_id_list = new ArrayList<Integer>();
+								ArrayList<Integer> stop_ids = new ArrayList<Integer>();
 								NodeList stopsNodes = version.getChildNodes();
 								for (int j = 0; j < stopsNodes.getLength(); j++) {
 									Node stop = stopsNodes.item(j);
 									if (stop.getNodeName().equals("przystanek")) {
 										String zdik_id = stop.getAttributes().getNamedItem("id").getNodeValue();
-										String przyst_nazwa = stop.getAttributes().getNamedItem("nazwa").getNodeValue();
-										String ulica = stop.getAttributes().getNamedItem("ulica").getNodeValue();
-										String cechy = stop.getAttributes().getNamedItem("cechy").getNodeValue();
+										String stop_name = stop.getAttributes().getNamedItem("nazwa").getNodeValue();
+										String street = stop.getAttributes().getNamedItem("ulica").getNodeValue();
+										String features = stop.getAttributes().getNamedItem("cechy").getNodeValue();
 										// update DB - przystanek
-										s = stmt.executeQuery("SELECT distinct przyst_id from Przystanek where zdik_id = '" + zdik_id + "'");
+										s = stmt.executeQuery("SELECT distinct stop_id from Stop where zdik_id = '" + zdik_id + "'");
 
 										if (!s.next()) {
-											stmt.executeUpdate("INSERT INTO Przystanek (zdik_id, przyst_nazwa, ulica, cechy)" + " VALUES('" + zdik_id + "', '"
-													+ przyst_nazwa + "', '" + ulica + "', '" + cechy + "')");
-											s = stmt.executeQuery("SELECT distinct przyst_id from Przystanek where zdik_id = '" + zdik_id + "'");
+											stmt.executeUpdate("INSERT INTO Stop (zdik_id, stop_name, street, features)" + " VALUES('" + zdik_id + "', '"
+													+ stop_name + "', '" + street + "', '" + features + "')");
+											s = stmt.executeQuery("SELECT distinct stop_id from Stop where zdik_id = '" + zdik_id + "'");
 											s.next();
-											przyst_id_list.add(s.getInt(1));
+											stop_ids.add(s.getInt(1));
 										} else {
-											przyst_id_list.add(s.getInt(1));
+											stop_ids.add(s.getInt(1));
 										}
 
 										// ///////////////
@@ -118,62 +118,62 @@ public class XmlParser {
 												NodeList dayNodes = tab.getChildNodes();
 												for (int n = 0; n < dayNodes.getLength(); n++) {
 													Node day = dayNodes.item(n);
-													String dzien = "";
+													String day_name = "";
 													if (day.getNodeName().equals("dzien")) {
-														dzien = day.getAttributes().getNamedItem("nazwa").getNodeValue();
-														s = stmt.executeQuery("SELECT count(*) from Dzien where dzien_nazwa = '" + dzien + "'");
+														day_name = day.getAttributes().getNamedItem("nazwa").getNodeValue();
+														s = stmt.executeQuery("SELECT count(*) from Day where day_name = '" + day_name + "'");
 														s.next();
 														if (s.getInt(1) == 0)
-															stmt.executeUpdate("INSERT INTO Dzien (dzien_nazwa)" + " VALUES('" + dzien + "')");
+															stmt.executeUpdate("INSERT INTO Day (day_name)" + " VALUES('" + day_name + "')");
 
 													}
 													NodeList hourNodes = day.getChildNodes();
 
 													for (int p = 0; p < hourNodes.getLength(); p++) {
-														Node hour = hourNodes.item(p);
-														if (hour.getNodeName().equals("godz")) {
-															NodeList minNodes = hour.getChildNodes();
+														Node hourNode = hourNodes.item(p);
+														if (hourNode.getNodeName().equals("godz")) {
+															NodeList minNodes = hourNode.getChildNodes();
 
 															for (int r = 0; r < minNodes.getLength(); r++) {
-																Node min = minNodes.item(r);
-																if (min.getNodeName().equals("min")) {
-																	String godz = hour.getAttributes().getNamedItem("h").getNodeValue();
-																	String minuta = min.getAttributes().getNamedItem("m").getNodeValue();
+																Node minNode = minNodes.item(r);
+																if (minNode.getNodeName().equals("min")) {
+																	String godz = hourNode.getAttributes().getNamedItem("h").getNodeValue();
+																	String minute = minNode.getAttributes().getNamedItem("m").getNodeValue();
 
-																	stmt.executeUpdate("INSERT INTO Rozklad (linia_id, przyst_id, nr_przyst, czas, dzien_id)"
-																			+ " VALUES(" + "(SELECT linia_id from Linia where linia_nazwa = '" + linia_nazwa
-																			+ "' AND wariant_id = '" + wariant_id + "'),"
-																			+ "(SELECT przyst_id FROM Przystanek where zdik_id = '" + zdik_id + "')" + ", '"
-																			+ tabId + "', '" + Integer.parseInt(godz) % 24 + ":" + minuta + "', "
-																			+ "(SELECT dzien_id from Dzien where dzien_nazwa = '" + dzien + "')" + ")");
-																	if (min.getAttributes().getLength() > 2) {
-																		String ozn = removeBegSpeces(min.getAttributes().getNamedItem("ozn").getNodeValue());
-																		String przyp = removeBegSpeces(min.getAttributes().getNamedItem("przyp").getNodeValue());
-																		przyp = przyp.replace("'", "");
+																	stmt.executeUpdate("INSERT INTO Timetable (line_id, stop_id, stop_number, departuretime, day_id)"
+																			+ " VALUES(" + "(SELECT line_id from Line where line_name = '" + line_name
+																			+ "' AND version_id = '" + version_id + "'),"
+																			+ "(SELECT stop_id FROM Stop where zdik_id = '" + zdik_id + "')" + ", '"
+																			+ tabId + "', '" + Integer.parseInt(godz) % 24 + ":" + minute + "', "
+																			+ "(SELECT day_id from Day where day_name = '" + day_name + "')" + ")");
+																	if (minNode.getAttributes().getLength() > 2) {
+																		String note_code = removeBegSpeces(minNode.getAttributes().getNamedItem("ozn").getNodeValue());
+																		String note_mean = removeBegSpeces(minNode.getAttributes().getNamedItem("przyp").getNodeValue());
+																		note_mean = note_mean.replace("'", "");
 
-																		String[] tabprzyp = przyp.split(";");
+																		String[] tabprzyp = note_mean.split(";");
 
-																		if (!przyp.equals("")) {
+																		if (!note_mean.equals("")) {
 
 																			for (int oznl = 0; oznl < tabprzyp.length; oznl++) {
 
 																				tabprzyp[oznl] = removeBegSpeces(tabprzyp[oznl]);
-																				s = stmt.executeQuery("SELECT count(*) from Przypis where przyp = '"
+																				s = stmt.executeQuery("SELECT count(*) from Note where note_mean = '"
 																						+ tabprzyp[oznl] + "'");
 																				s.next();
 																				if (s.getInt(1) == 0)
-																					stmt.executeUpdate("INSERT INTO Przypis (przyp_ozn, przyp)" + " VALUES('"
-																							+ przyp.charAt(oznl) + "', '" + tabprzyp[oznl] + "')");
+																					stmt.executeUpdate("INSERT INTO Note (note_code, note_mean)" + " VALUES('"
+																							+ note_mean.charAt(oznl) + "', '" + tabprzyp[oznl] + "')");
 																				s = stmt
-																						.executeQuery("SELECT count(*) from Oznaczenie where stop_id = (SELECT stop_id from Rozklad order by stop_id desc limit 1) and przyp_id = "
-																								+ "(SELECT przyp_id from Przypis where przyp = '"
+																						.executeQuery("SELECT count(*) from Mark where event_id = (SELECT event_id from Timetable order by event_id desc limit 1) and note_id = "
+																								+ "(SELECT note_id from Note where note_mean ='"
 																								+ tabprzyp[oznl] + "')");
 																				s.next();
 																				if (s.getInt(1) == 0)
-																					stmt.executeUpdate("INSERT INTO Oznaczenie (stop_id, przyp_id)"
+																					stmt.executeUpdate("INSERT INTO Mark (event_id, note_id)"
 																							+ " VALUES("
-																							+ "(SELECT stop_id from Rozklad order by stop_id desc limit 1), "
-																							+ "(SELECT przyp_id from Przypis where przyp = '" + tabprzyp[oznl]
+																							+ "(SELECT event_id from Timetable order by event_id desc limit 1), "
+																							+ "(SELECT note_id from Note where note_mean = '" + tabprzyp[oznl]
 																							+ "'))");
 
 																			}
@@ -197,31 +197,31 @@ public class XmlParser {
 										// godzina, minuta=NULL, powatarzaj� sie
 										// nr_przyst...
 										if (!added) {
-											stmt.executeUpdate("INSERT INTO Rozklad (linia_id, przyst_id, nr_przyst) VALUES("
-													+ "(SELECT linia_id from Linia where linia_nazwa = '" + linia_nazwa + "' AND wariant_id = '" + wariant_id
-													+ "')," + "(SELECT przyst_id FROM Przystanek where zdik_id = '" + zdik_id + "')" + ", "
+											stmt.executeUpdate("INSERT INTO Timetable (line_id, stop_id, stop_number) VALUES("
+													+ "(SELECT line_id from Line where line_name = '" + line_name + "' AND version_id = '" + version_id
+													+ "')," + "(SELECT stop_id FROM Stop where zdik_id = '" + zdik_id + "')" + ", "
 													+ (Integer.parseInt(tabId) + 1) + ")");
 										}
 
 									}
 								}
 								
-								if (wariant_id.equals("1") || wariant_id.equals("2")){
-								s = stmt.executeQuery("Select linia_id, typ_id from Linia where linia_nazwa = '" + linia_nazwa + "' and wariant_id='"
-										+ wariant_id + "'");
+								if (version_id.equals("1") || version_id.equals("2")){
+								s = stmt.executeQuery("Select line_id, type_id from Line where line_name = '" + line_name + "' and version_id='"
+										+ version_id + "'");
 								s.next();
-								int linia_id = s.getInt(1);
-								int typ_id = s.getInt(2);
-								for (int q = 0; q < przyst_id_list.size(); q++) {
-									int current = przyst_id_list.get(q);
-									for (int w = q + 1; w < przyst_id_list.size(); w++) {
-										int next = przyst_id_list.get(w);
+								int line_id = s.getInt(1);
+								int type_id = s.getInt(2);
+								for (int q = 0; q < stop_ids.size(); q++) {
+									int current = stop_ids.get(q);
+									for (int w = q + 1; w < stop_ids.size(); w++) {
+										int next = stop_ids.get(w);
 										// System.out.println(linia_id + " " +
 										// current + " " + next + " " + (w-q));
 										// insert into graf values
 										// current, next, linia_id, w-q
-										stmt.executeUpdate("INSERT INTO Graf (ps_id, pe_id, linia_id, waga, typ_id) VALUES('" + current + "','" + next + "','"
-												+ linia_id + "','" + (w - q) + "', '" + typ_id + "')");
+										stmt.executeUpdate("INSERT INTO Graph (ps_id, pe_id, line_id, weight, type_id) VALUES('" + current + "','" + next + "','"
+												+ line_id + "','" + (w - q) + "', '" + type_id + "')");
 									}
 								}
 							}}
@@ -236,13 +236,7 @@ public class XmlParser {
 
 			long time = System.currentTimeMillis() - start;
 			System.out.println("   dodanie do grafu w  " + time / 1000 + "s");
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

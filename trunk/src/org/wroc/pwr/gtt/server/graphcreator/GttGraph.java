@@ -27,12 +27,12 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 		super(WEdge.class);
 	}
 
-	public void addWEdge(DBconnector bconnector, int p1, int p2, int linia, int waga, int waga2) {
-		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setDB(bconnector), waga);
+	public void addWEdge(DBconnector bconnector, int p1, int p2, int linia, double local_weight, int waga2) {
+		setEdgeWeight((WEdge) addEdge(p1, p2).setLabel(linia).setWeight(waga2).setDB(bconnector), local_weight);
 	}
 
-	public ArrayList<ArrayList<LineStop>> findCourse(int p1, int p2, int amount) {
-		ArrayList<ArrayList<LineStop>> result = new ArrayList<ArrayList<LineStop>>();
+	public ArrayList<Route> findCourse(int p1, int p2, int amount) {
+		ArrayList<Route> result = new ArrayList<Route>();
 
 		if (containsVertex(p1) && containsVertex(p2) && p1!=p2) {
 			KShortestPaths<Integer, WEdge> ks = new KShortestPaths<Integer, WEdge>(this, p1, amount);
@@ -40,13 +40,13 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 
 			if ((a = (ArrayList<GraphPath<Integer, WEdge>>) ks.getPaths(p2)) != null) {
 
-				Collections.sort(a, new CComparator<GraphPath<Integer, WEdge>>());
+			//	Collections.sort(a, new RouteComparator<GraphPath<Integer, WEdge>>());
 				for (int i = 0; i < a.size(); i++) {
 					//System.out.println(a.get(i).getEdgeList() + " " + a.get(i).getWeight() + " " + CComparator.edgeWeight(a.get(i).getEdgeList()));
-					ArrayList<LineStop> resulte = new ArrayList<LineStop>();
+					Route resulte = new Route();
 					List<WEdge> e = a.get(i).getEdgeList();
 					for (int k = 0; k < e.size(); k++) {
-						resulte.add(new LineStop((Integer) e.get(k).getSourceVertex(), (Integer) e.get(k).getTargetVertex(), e.get(k).label));
+						resulte.add((Integer) e.get(k).getSourceVertex(), (Integer) e.get(k).getTargetVertex(), e.get(k).line_id, e.get(k).getStop_distance());
 					}
 					result.add(resulte);
 				}
@@ -54,6 +54,7 @@ public class GttGraph extends DirectedWeightedMultigraph<Integer, WEdge> {
 				System.out.println("brak po��czenia");
 		} else
 			System.out.println("brak przystanku w bazie");
+		Collections.sort(result);
 		return result;
 	}
 

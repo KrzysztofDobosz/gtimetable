@@ -14,31 +14,31 @@ import org.wroc.pwr.gtt.server.DBconnector;
  *
  */
 public class WEdge extends DefaultWeightedEdge {
-	int label;
-	int waga;
-	DBconnector conn;
+	int line_id;
+	int stop_distance;
+	DBconnector dbconnector;
 
 	public WEdge setLabel(int linia) {
-		label = linia;
+		line_id = linia;
 		return this;
 	}
 
 
 
 	public String toString() {
-		if (label != 1)
-			return conn.getLiniaNazwa(label) + "(" + conn.getPrzystNazwa((Integer) getSource()) + "," + conn.getPrzystNazwa((Integer) getTarget()) + ")";
+		if (line_id != 1)
+			return dbconnector.getLineName(line_id) + "(" + dbconnector.getStopName((Integer) getSource()) + "," + dbconnector.getStopName((Integer) getTarget()) + ")";
 		else
 			return "";
 	}
 
-	public WEdge setWeight(int waga2) {
-		waga = waga2;
+	public WEdge setWeight(int weight) {
+		stop_distance = weight;
 		return this;
 	}
 
 	public WEdge setDB(DBconnector bconnector) {
-		this.conn = bconnector;
+		this.dbconnector = bconnector;
 		return this;
 	}
 	public Object getSourceVertex(){
@@ -46,6 +46,12 @@ public class WEdge extends DefaultWeightedEdge {
 	}
 	public Object getTargetVertex(){
 		return getTarget();
+	}
+
+
+
+	public int getStop_distance() {
+		return stop_distance;
 	}
 
 }
