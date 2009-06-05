@@ -1,0 +1,127 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{latexsym}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[OT4]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+\fancypagestyle{plain}{
+% zmiana liter w~żywej paginie na małe
+%\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+%\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{} % usuń bieżące ustawienia pagin
+\fancyhead[LE,RO]{\date{\today}}
+\fancyhead[LO]{Lokalne Sieci Komputerowe, laboratorium}
+\renewcommand{\headrulewidth}{1.0pt}
+\renewcommand{\footrulewidth}{1pt}
+\addtolength{\headheight}{1.5pt} % pionowy odstęp na kreskę
+\fancyfoot[LE,CO]{Michał Brzeziński-Spiczak }
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{1pt} % pozioma kreska
+}
+%\addtolength{\textheight}{3.0cm}
+%\addtolength{\hoffset}{-1.3cm}
+%\addtolength{\textwidth}{2.7cm}
+%\addtolength{\marginparwidth}{-2cm}
+%\voffset = -50pt
+
+
+\begin{document}
+\pagestyle{plain}
+
+\begin{titlepage}
+ 
+
+
+ 
+% Upper part of the page
+\flushleft{\includegraphics[width=0.25\textwidth]{pwr}\\[1cm]
+\textsc{Politechnika Wrocławska\\
+Wydział Informatyki i Zarządzania\\
+Kierunek: Informatyka\\
+Rok: IV}}\\[1cm] 
+ \begin{center}
+%\textsc{\LARGE Lokalne Sieci Komputerowe\\Laboratorium}\\[1.5cm]
+ 
+\textsc{ Sprawozdanie z ćwiczeń laboratoryjnych do przedmiotu LOKALNE
+SIECI KOMPUTEROWE}\\[1.5cm]
+ 
+ 
+% Title
+ \hrule height 1pt
+  \par
+  \vfil \vskip 0.5cm
+   
+{ \large \bfseries GTT\\
+GoogleMapsTimetable\\
+Integracja rozkładu jazdy i Google Maps}\\[0.8cm]
+ 
+  \hrule height 1pt
+  \par
+  \vfil \vskip 3.5cm
+
+% Author and supervisor 
+\begin{minipage}{0.55\textwidth}
+\begin{flushleft} \large
+\emph{Autorzy:}\\
+Michał \textsc{Brzeziński-Spiczak}\\
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Prowadzący:} \\
+dr inż. Ziemowit \textsc{Nowak}
+\end{flushright}
+\end{minipage}
+ 
+\vfill
+ 
+% Bottom of the page
+{\large \today}
+ 
+\end{center}
+ 
+\end{titlepage}
+\newpage
+\tableofcontents
+\newpage
+%%%%%%właściwa treść:
+\section*{Wprowadzenie} 
+
+
+W miastach takich jaki Wrocław komunikacja miejska jest często najszybszą formą
+transportu. Dla tych, którzy nie znają miasta często też jedyną. Problemem może
+jednak okazać się wówczas nie sama prędkość autobusów czy tramwajów, ale czas
+jaki trzeba poświęcić na odnalezienie odpowiedniej linii, połączenia. 
+
+Najprostsze wyjście -- przygotować się. Rozkłady
+jazdy są ogólno dostępne. W Internecie pojawia się coraz więcej portali
+oferujących wyszukiwarki połączeń. Jednak i w taki przypadku pojawia się
+problem -- trzeba wiedzieć między jakimi przystankami znaleźć połączenie. Zatem
+jaki przystanek jest najbliżej miejsca, do którego muszę się dostać?
+
+\textbf{GTT \emph{GoogleMapsTimetable}} proponuje rozwiązanie i tego problemu:
+integracja rozkładów jazdy komunikacji miejskiej, wyszukiwarki połączeń oraz
+map (bazując na znanym systemie \emph{GoogleMaps}).
+
+Wykorzystanie planu miasta wprowadza nowe możliwości -- w najogólniejszym
+przypadku wystarczy wyklikac na mapie punkt startowy, następnie punkt docelowy
+i wcisnąć \emph{Szukaj}, aby dowiedzieć się jak (i gdzie konkretnie, czyli na
+jaki przystanek) dojechać, żeby znaleźć się tam, gdzie jest to konieczne.
+ 
+
+\section{Analiza wymagań funkcjonalnych}
+\section{Stosowane rozwiązania technologiczne}
+\section{Struktura systemu}
+\section{Raport z realizacji części serwerowej}
+\section{Raport realizacji  części serwerowej} 
+\section{Plany rozwojowe} 
+\section{Podręcznik administratora}
+\section{Podręcznik użytkownika}
+\section{Literatura}
+
+
+\end{document}
