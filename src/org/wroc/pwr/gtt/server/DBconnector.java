@@ -132,13 +132,11 @@ public class DBconnector {
 			for (int i = 0; i < stop_names.size(); i++)
 				for (int k = 0; k < stop_names.size(); k++)
 					if (k != i && stop_names.get(i).equals(stop_names.get(k))) {
-						// System.out.println(1 + " " + przyst_id.get(i) + " " +
-						// przyst_id.get(k) + " " + (0));
 						double distance = distance(getCoordinates(stop_ids
 								.get(i)), getCoordinates(stop_ids.get(k)));
 
-						double w = distance * 10;
-						if (distance < 0.1)
+						double w = distance;
+						if (distance < 0.4)
 							stmt
 									.executeUpdate("INSERT INTO Graph (ps_id, pe_id, line_id, weight, type_id) VALUES('"
 											+ stop_ids.get(i)
@@ -146,7 +144,7 @@ public class DBconnector {
 											+ stop_ids.get(k)
 											+ "','"
 											+ 1
-											+ "','" + 0 + "', '" + 1 + "')");
+											+ "','" + w + "', '" + 1 + "')");
 
 					}
 
