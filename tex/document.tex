@@ -93,9 +93,9 @@ dr inż. Ziemowit \textsc{Nowak}
 
 
 W miastach takich jaki Wrocław komunikacja miejska jest często najszybszą formą
-transportu. Dla tych, którzy nie znają miasta często też jedyną. Problemem może
-jednak okazać się wówczas nie sama prędkość autobusów czy tramwajów, ale czas
-jaki trzeba poświęcić na odnalezienie odpowiedniej linii, połączenia. 
+transportu. Dla tych, którzy są w danym mieście przejazdem, w odpwiedzinach --
+często też jedyną. Problemem może jednak okazać się wówczas nie sama prędkość
+autobusów czy tramwajów, ale czas jaki trzeba poświęcić na odnalezienie odpowiedniej linii, połączenia.
 
 Najprostsze wyjście -- przygotować się. Rozkłady
 jazdy są ogólno dostępne. W Internecie pojawia się coraz więcej portali
@@ -111,12 +111,122 @@ Wykorzystanie planu miasta wprowadza nowe możliwości -- w najogólniejszym
 przypadku wystarczy wyklikac na mapie punkt startowy, następnie punkt docelowy
 i wcisnąć \emph{Szukaj}, aby dowiedzieć się jak (i gdzie konkretnie, czyli na
 jaki przystanek) dojechać, żeby znaleźć się tam, gdzie jest to konieczne.
- 
+
+Nie jest to z pewnością pomysł innowacyjny. Można odnaleźć ślady i wzmianki
+po wielu systemach mających na celu podobne udogodnienie korzystania z
+rozkładów jazdy komunikacji miejskiej, jednak działających systemów jest nie
+wiele. W trakcie prac nad powstaniem \textbf{GTT} swojej premiery doczekał się
+portal \emph{jakdojade.pl}\footnote{www.jakdojade.pl}, o którym można
+powiedzieć, że w głównej mierze spełnia stawiane wymagania.
 
 \section{Analiza wymagań funkcjonalnych}
-\section{Stosowane rozwiązania technologiczne}
+
+\section{Zarys zasady działania aplikacji}
+\begin{figure}[htp]
+\centering
+\includegraphics[width=0.7\textwidth]{pwr} 
+\caption{Zarys działania aplikacji -- diagram}\label{dzialanie_systemu}
+\end{figure}
+\section{Analiza dostępnych danych wejściowych systemu}
+Jako że głównym celem \textbf{GTT} jest integracja rozkładu jazdy, wyszukiwarki
+połączeń oraz map konieczne jest zdefiniowanie i odpowiednie przetwarzanie
+danych źródłowych. Wśród nich wymienić należy:
+\begin{itemize}
+  \item rozkład jazdy komunikacji miejskiej MPK Wrocław
+  
+  wstępna analiza wykazała dostępność rozkładów jazdy w postaci plików XML
+  udostępnianych przez portal Urzędu Miasta Wrocław\footnote{http://www.wroclaw.pl/m3298/p3714.aspx}
+  \item lokalizacja (współrzędne geograficzne przystanków)
+
+   podobnie udostępniane przez portal Urzędu Miasta w postaci plików
+   ShapeFile\footnote{http://www.wroclaw.pl/m3293/}
+  \item mapy 
+  
+  ze względu na wstępne wymagania projektowe spośród dostępnych dostawców map
+  internetowych wybrano \emph{GoogleMaps} jeden z serwisów firmy \emph{Google},
+  który z założenia ma być bazą danych map oraz zdjęć satelitarnych i
+  lotniczych całego świata, a ponadto do którego zgodnie z zasadami działa
+  firmy istnieje co najmniej kilka API pozwalających na wykorzystanie map we
+  własnych serwisach.
+\end{itemize}
+
+Więcej informacji na temat sposobu przetwarzania danych wejściowych w kolejnych
+sekcjach dokumentacji.
+
 \section{Struktura systemu}
+
+Opisywana aplikacja charakteryzuje się klasyczną strukturą webową typu
+klient-serwer, jaką przedstawia diagram \ref{schemat_klient_server}.
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=0.7\textwidth]{pwr}
+\caption{Ogólna struktura aplikacji}\label{schemat_klient_server}
+\end{figure}
+
+Na najwyższym poziomie ogólności przyjąć można, że część kliencka jest
+interfejsem użytkownika: odpowiada za pobieranie danych wejściowych (zapytań do
+systemu) oraz graficzną prezentację wyników działania systemu, natomiast część
+serwerowa stanowi jądro realizujące zadania systemu.
+
+Ze względu na fakt nałożenia znaczących wymagań funkcjonalnych odnośnie samego
+interfejsu użytkownika część kliencka musi być traktowana na równi z serwerową.
+
+\subsection{Część serwerowa}
+Przyglądając się bliżej części serwerowej można wyodrębnić następujące moduły
+funkcjonalne aplikacji:
+\begin{itemize}
+  \item zarządzanie bazą danych;
+  \item zarządzanie pozyskiwaniem danych z zewnętrznych źródeł;
+  \item silnik wyszukiwania połączeń;
+  \item zarządzanie komunikacją z częścią kliencką
+\end{itemize}
+\subsubsection{Zarządzanie bazą danych}
+Moduł zarządznia bazą danych stanowi łącznik między warstwą danych a
+pozostałymi modułami serwera i pośrednio częścią kliencką. Jest najniższą
+warstwą abstrakcji nałożoną na fizyczną realizację systemu zarządzania bazą
+danych. 
+ 
+\subsubsection{Pozyskiwaniem danych z zewnętrznych źródeł}
+Moduł ten odpowiada za pobieranie i przetwarzanie danych z zewnętrznych źródeł
+do postaci możliwej do zapisania w bazie danych.
+ 
+
+\subsubsection{Silnik wyszukiwania połączeń}
+Na podstawie relacyjnej struktury danych moduł ma za zadanie generowanie
+najlepszych połączeń między zadanymi punktami.
+
+\subsubsection{Komunikacja z częścią kliencką}
+
+\subsection{Część kliencka}
+
+Oddzielną kwestię stanowi komunikacja klient-serwer. W przypadku \textbf{GTT}
+zdecydowano obarczyć odpowiedzialnością za komunikację framework \emph{GWT}, na
+temat którego więcej informacji w sekcji Stosowanych rozwiązań technologicznych.
+\subsection{Model obiektowy systemu}
+\subsubsection{Diagram klas}
+\section{Stosowane rozwiązania technologiczne}
+
 \section{Raport z realizacji części serwerowej}
+Prace nad częścią serwerową rozpoczęły się równolegle do przyswajania i
+zaaklimatyzowania się z \emph{GWT Google Maps API}. Ustalona została logiczna
+kolejność funkcjonalna tworzenia klas i realizacji modułów funkcjonalnych:
+\begin{itemize}
+  \item opracowanie struktury bazy danych
+  \item analiza struktury dokumentów XML z rozkładami jazdy 
+  \item programowe pozyskanie dokumentów XML z rozkładami
+  \item wyodrębnienie interesujących danych -- parsowanie
+  \item wypełnienie bazy danych
+  \item opracowanie silnika wyszukiwania połączeń
+  \item zdefiniowanie i oprogramowanie interfejsów pobierania informacji o
+  rozkładach
+  \item opracowanie interfejsów silnika wyszukiwania połączeń
+  \item implementacja silnika wyszukiwania połączeń przystanek-przystanek
+  \item analiza struktury i możliwości importu lokalizacji przystanków z plików
+  źródłowych
+  \item aktualizacja bazy danych o lokalizację przystanków
+  \item implementacja silnika wyszukiwania połączęń punkt-punkt 
+\end{itemize}
 \section{Raport realizacji  części serwerowej} 
 \section{Plany rozwojowe} 
 \section{Podręcznik administratora}
