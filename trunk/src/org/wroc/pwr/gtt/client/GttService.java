@@ -3,6 +3,7 @@ package org.wroc.pwr.gtt.client;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.wroc.pwr.gtt.server.Coordinates;
 
@@ -25,6 +26,7 @@ public interface GttService extends RemoteService
    }
    public void update();
    public String getStopName(int przyst_id);
+   public ArrayList<String> getStopNames(String line_name, int stop_id);
    public String getLineName(int linia_id);
    public int getStopId(String nazwa);
    public ArrayList<Integer> getStopIds(String nazwa);
@@ -33,7 +35,9 @@ public interface GttService extends RemoteService
    public ArrayList<Integer> getLineRoute(int linia_id);
    public HashMap<Integer, ArrayList<Time>> getStopLineTable(int przyst_id, String linia);
    public HashMap<Integer, ArrayList<String>> getLines();
+   public HashMap<Integer, String> getDayNames(ArrayList<Integer> day_ids);
    public String getTypeName(int typ_id);
+   public String getTypeNameViaLine(String line_name);
    public String getVersionName(int linia_id);
    public ArrayList<String> getVersions(String linia_nazwa);
    public ArrayList<Time> getNearestDeparture(int przyst_id, int linia_id, int dzien_id, Time start);
