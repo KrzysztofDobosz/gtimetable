@@ -308,9 +308,9 @@ public class Client implements EntryPoint
       String stopNames = "";
       for (int i = 0; i < data.getStopList().size(); i++)
       {
-         if (data.getStopList().get(i) == data.getStopName())
+         if (data.getStopList().get(i).equals(data.getStopName()))
          {
-            stopNames += "<b>" + data.getStopList().get(i) + "</b><br>";
+            stopNames += "<big>" + data.getStopList().get(i) + "</big><br>";
          }
          else
          {
@@ -1094,46 +1094,43 @@ public class Client implements EntryPoint
       final AbsolutePanel center = new AbsolutePanel();
 
       Image background = new Image();
-      background.setUrl("gfx/main.jpg");
-      background.setPixelSize(800, 629);
+      background.setUrl("gfx/main_1024.jpg");
       center.add(background);
 
-      addressSearch.setVisibleLength(25);
-      center.add(addressSearch, 36, 162);
-      center.add(addressSubmit, 226, 162);
+      center.add(new HTML("znajdź adres:"), 48, 204);
+      addressSearch.setVisibleLength(20);
+      center.add(addressSearch, 138, 202);
+      center.add(addressSubmit, 297, 202);
 
-      map.setSize("498px", "347px");
-      center.add(map, 264, 148);
+      map.setSize("638px", "437px");
+      center.add(map, 337, 190);
 
       ScrollPanel scroll = new ScrollPanel();
-      scroll.setSize("190px", "300px");
+      scroll.setSize("230px", "375px");
       scroll.setWidget(route);
-      center.add(scroll, 41, 295);
+      for (int i = 0; i < 50; i++)
+      {
+         route.add(new Label("A"));
+      }
+      center.add(scroll, 56, 383);
 
-      center.add(new HTML("<small>wyszukaj przystanek:</small>"), 294, 528);
+      center.add(new HTML("wyszukaj przystanek:"), 383, 670);
       stationSearch.setVisibleLength(20);
-      center.add(stationSearch, 420, 524);
+      center.add(stationSearch, 529, 668);
       stationSubmit.setPixelSize(57, 19);
       stationSubmit.addStyleDependentName("station");
-      center.add(stationSubmit, 590, 524);
+      center.add(stationSubmit, 699, 668);
 
-      center.add(new HTML("<small>dostępne linie:</small>"), 294, 558);
+      center.add(new HTML("dostępne linie:"), 383, 700);
       lineSearch.setLimit(4);
-      center.add(lineSearch, 420, 554);
+      center.add(lineSearch, 529, 698);
       lineSubmit.setPixelSize(57, 19);
       lineSubmit.addStyleDependentName("station");
-      center.add(lineSubmit, 590, 554);
+      center.add(lineSubmit, 699, 698);
       variantList.setWidth("140px");
-      center.add(variantList, 420, 584);
+      center.add(variantList, 529, 728);
 
       mainPanel.add(center);
-
-      Image footer = new Image();
-      footer.setUrl("gfx/foot.jpg");
-      footer.setPixelSize(755, 70);
-      mainPanel.add(footer);
-      mainPanel.setCellHorizontalAlignment(footer,
-            HasHorizontalAlignment.ALIGN_RIGHT);
 
       RootPanel.get().add(mainPanel);
    }
