@@ -1,10 +1,11 @@
 package org.wroc.pwr.gtt.client;
 
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
-
-import org.wroc.pwr.gtt.server.Coordinates;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.JsArray;
@@ -12,29 +13,25 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.ClickListener;
-import com.google.gwt.user.client.ui.DecoratedTabPanel;
-import com.google.gwt.user.client.ui.DecoratorPanel;
-import com.google.gwt.user.client.ui.DockPanel;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
-import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
-import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment.HorizontalAlignmentConstant;
+import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
 import com.google.gwt.maps.client.InfoWindow;
 import com.google.gwt.maps.client.InfoWindowContent;
 import com.google.gwt.maps.client.MapWidget;
@@ -51,10 +48,8 @@ import com.google.gwt.maps.client.geom.Size;
 import com.google.gwt.maps.client.overlay.Icon;
 import com.google.gwt.maps.client.overlay.Marker;
 import com.google.gwt.maps.client.overlay.MarkerOptions;
-import com.google.gwt.maps.client.overlay.Overlay;
 import com.google.gwt.maps.client.event.MapClickHandler;
 import com.google.gwt.maps.client.event.MapDoubleClickHandler;
-import com.google.gwt.maps.client.event.MapMouseMoveHandler;
 import com.google.gwt.maps.client.event.MarkerClickHandler;
 import com.google.gwt.maps.client.event.MarkerDragEndHandler;
 import com.google.gwt.maps.client.event.MarkerDragStartHandler;
@@ -153,30 +148,221 @@ public class Client implements EntryPoint
 
          public void onSuccess(Integer result)
          {
-            service.getLineRoute(result, new AsyncCallback<ArrayList<Integer>>()
+            service.getLineRoute(result,
+                  new AsyncCallback<ArrayList<Integer>>()
+                  {
+                     public void onFailure(Throwable caught)
+                     {
+                        Window
+                              .alert("Failed to fetch stations' ids for given line id. "
+                                    + caught.getMessage());
+                     }
+
+                     public void onSuccess(ArrayList<Integer> result)
+                     {
+                        for (int i = 0; i < result.size(); i++)
+                        {
+                           Integer id = result.get(i);
+                           if (stationsIds.contains(id))
+                           {
+                              addStationMarker(id, stationsCoords
+                                    .get(stationsIds.indexOf(id)));
+                           }
+                        }
+                     }
+                  });
+         }
+      });
+   }
+
+   private void showTimetable(Integer stationId, String stationName,
+         String lineName)
+   {
+      final TimetableData data = new TimetableData();
+      data.setStopName(stationName);
+      data.setLineName(lineName);
+      service.getStopLineTable(stationId, lineName,
+            new AsyncCallback<HashMap<Integer, ArrayList<Time>>>()
             {
                public void onFailure(Throwable caught)
                {
-                  Window
-                        .alert("Failed to fetch stations' ids for given line id. "
-                              + caught.getMessage());
+                  Window.alert("Fetching Timetable failed. "
+                        + caught.getMessage());
                }
 
-               public void onSuccess(ArrayList<Integer> result)
+               public void onSuccess(HashMap<Integer, ArrayList<Time>> result)
                {
-                  for (int i = 0; i < result.size(); i++)
+                  HashMap<Integer, HashMap<Integer, ArrayList<Integer>>> timetable = new HashMap<Integer, HashMap<Integer, ArrayList<Integer>>>();
+                  for (Integer day_id : result.keySet())
                   {
-                     Integer id = result.get(i);
-                     if (stationsIds.contains(id))
+                     HashMap<Integer, ArrayList<Integer>> times = new HashMap<Integer, ArrayList<Integer>>();
+                     for (Time time : result.get(day_id))
                      {
-                        addStationMarker(id, stationsCoords.get(stationsIds
-                              .indexOf(id)));
+                        Integer hh = time.getHours();
+                        if (!times.containsKey(hh))
+                        {
+                           times.put(hh, new ArrayList<Integer>());
+                        }
+                        times.get(hh).add(time.getMinutes());
                      }
+                     timetable.put(day_id, times);
+                  }
+                  data.setTimetable(timetable);
+                  service.getDayNames(new ArrayList<Integer>(result.keySet()),
+                        new AsyncCallback<HashMap<Integer, String>>()
+                        {
+                           public void onFailure(Throwable caught)
+                           {
+                              Window
+                                    .alert("Failed to fetch day names hashmap. "
+                                          + caught.getMessage());
+                           }
+
+                           public void onSuccess(HashMap<Integer, String> result)
+                           {
+                              data.setDayNames(result);
+                              if (data.getStopList() != null
+                                    && data.getTypeName() != null)
+                              {
+                                 createTimetableWindow(data);
+                              }
+                           }
+                        });
+               }
+            });
+      service.getStopNames(lineName, stationId,
+            new AsyncCallback<ArrayList<String>>()
+            {
+               public void onFailure(Throwable caught)
+               {
+                  Window.alert("Failed to fetch stop names via line name. "
+                        + caught.getMessage());
+               }
+
+               public void onSuccess(ArrayList<String> result)
+               {
+                  data.setStopList(result);
+                  if (data.getDayNames() != null && data.getTypeName() != null)
+                  {
+                     createTimetableWindow(data);
                   }
                }
             });
+      service.getTypeNameViaLine(lineName, new AsyncCallback<String>()
+      {
+         public void onFailure(Throwable caught)
+         {
+            Window.alert("Failed to fetch line's type name. "
+                  + caught.getMessage());
+         }
+
+         public void onSuccess(String result)
+         {
+            data.setTypeName(result);
+            if (data.getDayNames() != null && data.getStopList() != null)
+            {
+               createTimetableWindow(data);
+            }
          }
       });
+   }
+
+   private void createTimetableWindow(TimetableData data)
+   {
+      final FlexTable timetable = new FlexTable();
+      timetable.addStyleName("gwt-FlexTable");
+      FlexCellFormatter cellFormatter = timetable.getFlexCellFormatter();
+
+      timetable.setHTML(0, 0, "<small>" + data.getTypeName()
+            + "</small><br><font size=\"5\"><b>" + data.getLineName()
+            + "</b></font size=\"5\">");
+      cellFormatter.setAlignment(0, 0, HasHorizontalAlignment.ALIGN_CENTER,
+            HasVerticalAlignment.ALIGN_MIDDLE);
+      cellFormatter.setRowSpan(0, 0, 2);
+
+      timetable.setHTML(0, 1, "Przystanek: <big>" + data.getStopName()
+            + "</big>");
+      ArrayList<Integer> day_ids = new ArrayList<Integer>(data.getDayNames()
+            .keySet());
+      Collections.sort(day_ids);
+      cellFormatter.setColSpan(0, 1, day_ids.size() * 2);
+
+      Set<Integer> hoursSet = new HashSet<Integer>();
+      for (Integer day_id : day_ids)
+      {
+         hoursSet.addAll(new HashSet<Integer>(data.getTimetable().get(day_id)
+               .keySet()));
+         timetable.setHTML(1, day_ids.indexOf(day_id), data.getDayNames().get(
+               day_id));
+         cellFormatter.setColSpan(1, day_ids.indexOf(day_id), 2);
+      }
+      ArrayList<Integer> hours = new ArrayList<Integer>(hoursSet);
+      Collections.sort(hours);
+      while ((hours.get(hours.size() - 1) + 1) % 24 == hours.get(0))
+      {
+         hours.add(hours.get(0));
+         hours.remove(0);
+      }
+
+      Integer rowsNr = (25 + hours.get(hours.size() - 1) - hours.get(0)) % 24;
+      String stopNames = "";
+      for (int i = 0; i < data.getStopList().size(); i++)
+      {
+         if (data.getStopList().get(i) == data.getStopName())
+         {
+            stopNames += "<b>" + data.getStopList().get(i) + "</b><br>";
+         }
+         else
+         {
+            stopNames += data.getStopList().get(i) + "<br>";
+         }
+      }
+      timetable.setHTML(2, 0, stopNames);
+      cellFormatter.setAlignment(2, 0, HasHorizontalAlignment.ALIGN_CENTER,
+            HasVerticalAlignment.ALIGN_TOP);
+      cellFormatter.setRowSpan(2, 0, rowsNr + 1);
+
+      for (int d = 0; d < day_ids.size(); d++)
+      {
+         for (int i = 0; i < rowsNr; i++)
+         {
+            Integer j = (hours.get(0) + i) % 24;
+            int k;
+            if (i == 0)
+               k = d * 2 + 1;
+            else
+               k = d * 2;
+            timetable.setHTML(2 + i, k, "<small><b>" + j.toString()
+                  + "</b></small>");
+            cellFormatter.setHeight(2 + i, k, "20px");
+            cellFormatter.setWidth(2 + i, k, "15px");
+            cellFormatter.setAlignment(2 + i, k,
+                  HasHorizontalAlignment.ALIGN_CENTER,
+                  HasVerticalAlignment.ALIGN_MIDDLE);
+            if (data.getTimetable().get(day_ids.get(0)).containsKey(j))
+            {
+               String mins = "<small>";
+               ArrayList<Integer> minsList = new ArrayList<Integer>(data
+                     .getTimetable().get(day_ids.get(0)).get(j));
+               Collections.sort(minsList);
+               for (Integer min : minsList)
+               {
+                  mins += min + " ";
+               }
+               mins = mins.substring(0, mins.length() - 1) + "</small>";
+               timetable.setHTML(2 + i, k + 1, mins);
+            }
+            else
+               timetable.setHTML(2 + i, k + 1, " ");
+         }
+      }
+      timetable.setHTML(2 + rowsNr, 1, "");
+      cellFormatter.setColSpan(2 + rowsNr, 1, day_ids.size() * 2);
+
+      final PopupPanel timetableWindow = new PopupPanel(true);
+      timetableWindow.setAnimationEnabled(true);
+      timetableWindow.setWidget(timetable);
+      timetableWindow.center();
    }
 
    private void addSpotMarker(LatLng point)
@@ -401,7 +587,8 @@ public class Client implements EntryPoint
                {
                   public void onClick(Widget sender)
                   {
-                     // ((Label) sender).getText();
+                     showTimetable(przyst_id, station.getText(),
+                           ((Label) sender).getText());
                   }
                });
                lines.add(new Label(", "));
@@ -945,6 +1132,8 @@ public class Client implements EntryPoint
       footer.setUrl("gfx/foot.jpg");
       footer.setPixelSize(755, 70);
       mainPanel.add(footer);
+      mainPanel.setCellHorizontalAlignment(footer,
+            HasHorizontalAlignment.ALIGN_RIGHT);
 
       RootPanel.get().add(mainPanel);
    }

@@ -12,3 +12,7 @@
   padding: 1px 4px;
   font-size: smaller;
 }
+.gwt-FlexTable td {
+  border: 1px solid #BBBBBB;
+  padding: 3px;
+}

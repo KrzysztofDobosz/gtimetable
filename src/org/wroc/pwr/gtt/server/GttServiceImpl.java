@@ -3,6 +3,7 @@ package org.wroc.pwr.gtt.server;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.wroc.pwr.gtt.client.GttService;
 import org.wroc.pwr.gtt.server.dbupdater.TTdownloader;
@@ -17,10 +18,10 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    static String archName = "MPK.zip";
    static String dir = "zdik";
    static String dbhost = "jdbc:mysql://localhost:3306/";
-   static String dbName = "mysql";
+   static String dbName = "gtt";
    static String driver = "com.mysql.jdbc.Driver";
    static String userName = "root";
-   static String pasword = "password";
+   static String pasword = "8pv2y2n8";
    static String tramCoFile = "tram.txt";
    static String busCoFile = "bus.txt";
    static DBconnector connector = new DBconnector(driver, dbhost, dbName,
@@ -56,6 +57,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       return connector.getLines();
    }
 
+   public HashMap<Integer, String> getDayNames(ArrayList<Integer> day_ids)
+   {
+      return connector.getDayNames(day_ids);
+   }
+
    public ArrayList<Time> getNearestDeparture(int przyst_id, int linia_id, int dzien_id,
          Time start)
    {
@@ -77,6 +83,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       return connector.getStopName(przyst_id);
    }
 
+   public ArrayList<String> getStopNames(String line_name, int stop_id)
+   {
+      return connector.getStopNames(line_name, stop_id);
+   }
+
    public HashMap<Integer, ArrayList<Time>> getStopLineTable(int przyst_id,
          String linia)
    {
@@ -91,6 +102,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    public String getTypeName(int typ_id)
    {
       return connector.getTypeName(typ_id);
+   }
+
+   public String getTypeNameViaLine(String line_name)
+   {
+      return connector.getTypeNameViaLine(line_name);
    }
 
    public String getVersionName(int linia_id)
