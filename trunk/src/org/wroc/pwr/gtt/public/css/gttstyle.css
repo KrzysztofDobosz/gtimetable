@@ -3,6 +3,8 @@ body {
  padding: 0;
  width: 1024px;
 }
+.gwt-CheckBox {
+}
 .gwt-TextBox {
   border: 1px solid #000000;
 }

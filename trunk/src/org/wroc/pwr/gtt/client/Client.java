@@ -13,6 +13,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
@@ -25,10 +27,12 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
@@ -58,6 +62,8 @@ public class Client implements EntryPoint
 {
    private GttServiceAsync service;
    private MapWidget map;
+   private MapClickHandler addSpotHandler;
+   private ToggleButton addSpotButton;
    private Image addressSubmit;
    private TextBox addressSearch;
    private Button stationSubmit;
@@ -73,6 +79,25 @@ public class Client implements EntryPoint
    private VerticalPanel route;
    private Marker startSpot;
    private Marker endSpot;
+   private Image startIcon;
+   private Image endIcon;
+   private HTML start;
+   private HTML end;
+   private CheckBox normalne;
+   private CheckBox pospieszne;
+   private CheckBox nocne;
+   private Button findCourseButton;
+   private ListBox courseList;
+
+   private void findCourse()
+   {
+      ;
+   }
+
+   private void showCourse()
+   {
+      ;
+   }
 
    private void findPlace()
    {
@@ -440,7 +465,7 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addStartMarker(point);
+            addStartMarker(loc.getText(), point);
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -480,7 +505,7 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addEndMarker(point);
+            addEndMarker(loc.getText(), point);
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -632,7 +657,7 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addStartMarker(point);
+            addStartMarker(name.getText(), point);
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -668,7 +693,7 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addEndMarker(point);
+            addEndMarker(name.getText(), point);
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -698,11 +723,10 @@ public class Client implements EntryPoint
       currentStations.add(marker);
    }
 
-   private void addStartMarker(LatLng point)
+   private void addStartMarker(String place, LatLng point)
    {
       map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
-      options.setDraggable(true);
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-start.png");
       icon
@@ -716,25 +740,9 @@ public class Client implements EntryPoint
 
       final VerticalPanel panel = new VerticalPanel();
 
-      final Label loc = new Label("");
+      final Label loc = new Label(place);
       panel.add(loc);
-      geocoder.getLocations(point, new LocationCallback()
-      {
-         public void onFailure(int statusCode)
-         {
-            Window.alert("Failed to geocode" + ". Status: " + statusCode + " "
-                  + StatusCodes.getName(statusCode));
-         }
-
-         public void onSuccess(JsArray<Placemark> locations)
-         {
-            Placemark location = locations.get(0);
-            if (location.getStreet() != null)
-            {
-               loc.setText(location.getStreet());
-            }
-         }
-      });
+      start.setHTML(place);
       panel.add(new Label("\n"));
       final Label anuluj = new Label("Anuluj");
       anuluj.addClickListener(new ClickListener()
@@ -744,6 +752,7 @@ public class Client implements EntryPoint
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
             startSpot = null;
+            start.setHTML("");
             if (stationsCoords.contains(point) == false)
             {
                addSpotMarker(point);
@@ -776,6 +785,8 @@ public class Client implements EntryPoint
          {
             public void onClick(Widget sender)
             {
+               startSpot = null;
+               start.setHTML("");
                map.removeOverlay(marker);
             }
          });
@@ -791,22 +802,6 @@ public class Client implements EntryPoint
             info.open(marker, content);
          }
       });
-      marker.addMarkerDragEndHandler(new MarkerDragEndHandler()
-      {
-         public void onDragEnd(MarkerDragEndEvent event)
-         {
-            addStartMarker(marker.getLatLng());
-            map.removeOverlay(marker);
-         }
-      });
-
-      marker.addMarkerDragStartHandler(new MarkerDragStartHandler()
-      {
-         public void onDragStart(MarkerDragStartEvent event)
-         {
-            info.setVisible(false);
-         }
-      });
 
       map.addOverlay(marker);
       info = map.getInfoWindow();
@@ -814,11 +809,10 @@ public class Client implements EntryPoint
       startSpot = marker;
    }
 
-   private void addEndMarker(LatLng point)
+   private void addEndMarker(String place, LatLng point)
    {
       map.panTo(point);
       MarkerOptions options = MarkerOptions.newInstance();
-      options.setDraggable(true);
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-end.png");
       icon
@@ -832,25 +826,9 @@ public class Client implements EntryPoint
 
       final VerticalPanel panel = new VerticalPanel();
 
-      final Label loc = new Label("");
+      final Label loc = new Label(place);
       panel.add(loc);
-      geocoder.getLocations(point, new LocationCallback()
-      {
-         public void onFailure(int statusCode)
-         {
-            Window.alert("Failed to geocode" + ". Status: " + statusCode + " "
-                  + StatusCodes.getName(statusCode));
-         }
-
-         public void onSuccess(JsArray<Placemark> locations)
-         {
-            Placemark location = locations.get(0);
-            if (location.getStreet() != null)
-            {
-               loc.setText(location.getStreet());
-            }
-         }
-      });
+      end.setHTML(place);
       panel.add(new Label("\n"));
       final Label anuluj = new Label("Anuluj");
       anuluj.addClickListener(new ClickListener()
@@ -860,6 +838,7 @@ public class Client implements EntryPoint
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
             endSpot = null;
+            end.setHTML("");
             if (stationsCoords.contains(point) == false)
             {
                addSpotMarker(point);
@@ -892,6 +871,8 @@ public class Client implements EntryPoint
          {
             public void onClick(Widget sender)
             {
+               endSpot = null;
+               end.setHTML("");
                map.removeOverlay(marker);
             }
          });
@@ -905,22 +886,6 @@ public class Client implements EntryPoint
          {
             info = map.getInfoWindow();
             info.open(marker, content);
-         }
-      });
-      marker.addMarkerDragEndHandler(new MarkerDragEndHandler()
-      {
-         public void onDragEnd(MarkerDragEndEvent event)
-         {
-            addEndMarker(marker.getLatLng());
-            map.removeOverlay(marker);
-         }
-      });
-
-      marker.addMarkerDragStartHandler(new MarkerDragStartHandler()
-      {
-         public void onDragStart(MarkerDragStartEvent event)
-         {
-            info.setVisible(false);
          }
       });
 
@@ -1019,30 +984,84 @@ public class Client implements EntryPoint
          }
       });
 
+      addSpotHandler = new MapClickHandler()
+      {
+         public void onClick(MapClickEvent event)
+         {
+            addSpotMarker(event.getLatLng());
+            addSpotButton.setDown(false);
+            map.removeMapClickHandler(addSpotHandler);
+         }
+      };
+      addSpotButton = new ToggleButton(new Image(
+            "http://labs.google.com/ridefinder/images/mm_20_red.png"));
+      addSpotButton.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            if (addSpotButton.isDown())
+               map.addMapClickHandler(addSpotHandler);
+            else
+               map.removeMapClickHandler(addSpotHandler);
+         }
+      });
+
+      normalne = new CheckBox("normalne", true);
+      normalne.setChecked(true);
+      pospieszne = new CheckBox("pospieszne", true);
+      pospieszne.setChecked(false);
+      nocne = new CheckBox("nocne", true);
+      nocne.setChecked(false);
+
+      startIcon = new Image(
+            "http://www.google.com/intl/en_ALL/mapfiles/dd-start.png");
+      startIcon.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            if (startSpot != null)
+            {
+               map.panTo(startSpot.getLatLng());
+            }
+         }
+      });
+      endIcon = new Image(
+            "http://www.google.com/intl/en_ALL/mapfiles/dd-end.png");
+      endIcon.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            if (endSpot != null)
+            {
+               map.panTo(endSpot.getLatLng());
+            }
+         }
+      });
+      start = new HTML();
+      end = new HTML();
+      findCourseButton = new Button("Znajdź trasę");
+      findCourseButton.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            findCourse();
+         }
+      });
+      courseList = new ListBox(false);
+      courseList.addChangeListener(new ChangeListener()
+      {
+         public void onChange(Widget sender)
+         {
+            showCourse();
+         }
+      });
+
       map = new MapWidget(LatLng.newInstance(51.1078852, 17.0385376), 13);
       map.addControl(new LargeMapControl());
       map.addControl(new MapTypeControl());
       map.setContinuousZoom(true);
-      map.setDoubleClickZoom(false);
+      map.setDoubleClickZoom(true);
       map.setScrollWheelZoomEnabled(true);
-      map.addMapClickHandler(new MapClickHandler()
-      {
-         public void onClick(MapClickEvent event)
-         {
-            if (event.getOverlay() == null)
-            {
-               // System.out.println(event.getLatLng().getLatitude());
-            }
-         }
-      });
-      map.addMapDoubleClickHandler(new MapDoubleClickHandler()
-      {
-         public void onDoubleClick(MapDoubleClickEvent event)
-         {
-            map.panTo(event.getLatLng());
-            addSpotMarker(event.getLatLng());
-         }
-      });
       map.clearOverlays();
 
       service = GttService.Util.getInstance();
@@ -1097,16 +1116,32 @@ public class Client implements EntryPoint
       background.setUrl("gfx/main_1024.jpg");
       center.add(background);
 
+      map.setSize("638px", "437px");
+      center.add(map, 337, 190);
+
       center.add(new HTML("znajdź adres:"), 48, 204);
       addressSearch.setVisibleLength(20);
       center.add(addressSearch, 138, 202);
       center.add(addressSubmit, 297, 202);
 
-      map.setSize("638px", "437px");
-      center.add(map, 337, 190);
+      center.add(new HTML("lub wskaż miejsce na mapie:"), 48, 234);
+      center.add(addSpotButton, 296, 225);
+
+      center.add(normalne, 52, 268);
+      center.add(pospieszne, 52, 283);
+      center.add(nocne, 52, 298);
+
+      center.add(startIcon, 152, 257);
+      center.add(start, 180, 265);
+      center.add(endIcon, 152, 297);
+      center.add(end, 180, 305);
+
+      courseList.setWidth("155px");
+      center.add(courseList, 56, 343);
+      center.add(findCourseButton, 224, 340);
 
       ScrollPanel scroll = new ScrollPanel();
-      scroll.setSize("230px", "375px");
+      scroll.setSize("267px", "380px");
       scroll.setWidget(route);
       for (int i = 0; i < 50; i++)
       {
