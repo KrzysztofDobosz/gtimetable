@@ -8,6 +8,8 @@ import java.util.Set;
 import org.wroc.pwr.gtt.client.GttService;
 import org.wroc.pwr.gtt.server.dbupdater.TTdownloader;
 import org.wroc.pwr.gtt.server.graphcreator.GttGraph;
+import org.wroc.pwr.gtt.server.graphcreator.Leg;
+import org.wroc.pwr.gtt.server.graphcreator.Route;
 
 import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -62,10 +64,11 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       return connector.getDayNames(day_ids);
    }
 
-   public ArrayList<Time> getNearestDeparture(int przyst_id, int linia_id, int dzien_id,
-         Time start)
+   public ArrayList<Time> getNearestDeparture(int przyst_id, int linia_id,
+         int dzien_id, Time start)
    {
-      return connector.getNearestDeparture(przyst_id, linia_id, dzien_id, start);
+      return connector
+            .getNearestDeparture(przyst_id, linia_id, dzien_id, start);
    }
 
    public int getStopId(String nazwa)
@@ -132,4 +135,36 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       connector.updateDB(xmlFiles, tramCoFile, busCoFile);
    }
 
+   public HashMap<ArrayList<ArrayList<ArrayList<Integer>>>, HashMap<Integer, String>> findCourse(
+         boolean normal, boolean fast, boolean night, double xLat, double xLng,
+         double yLat, double yLng, int amount, int cx, int cy)
+   {
+      HashMap<ArrayList<ArrayList<ArrayList<Integer>>>, HashMap<Integer, String>> output = new HashMap<ArrayList<ArrayList<ArrayList<Integer>>>, HashMap<Integer, String>>();
+      ArrayList<ArrayList<ArrayList<Integer>>> routeList = new ArrayList<ArrayList<ArrayList<Integer>>>();
+      HashMap<Integer, String> stopMap = new HashMap<Integer, String>();
+      ArrayList<Route> routes = connector.findCourse(normal, fast, night,
+            new Coordinates(xLat, xLng), new Coordinates(yLat, yLng), amount,
+            cx, cy);
+      for (Route route : routes)
+      {
+         ArrayList<ArrayList<Integer>> legList = new ArrayList<ArrayList<Integer>>();
+         ArrayList<Leg> legs = route.getTrasa();
+         for (Leg leg : legs)
+         {
+            ArrayList<Integer> lineAndStops = new ArrayList<Integer>();
+            lineAndStops.add(leg.getLine_id());
+            stopMap.put(leg.getLine_id(), getLineName(leg.getLine_id()));
+            ArrayList<Integer> allStops = getLineRoute(leg.getLine_id());
+            for (int i = allStops.indexOf(leg.getStart_stop()); i < allStops
+                  .indexOf(leg.getEnd_stop()) + 1; i++)
+            {
+               lineAndStops.add(allStops.get(i));
+            }
+            legList.add(lineAndStops);
+         }
+         routeList.add(legList);
+      }
+      output.put(routeList, stopMap);
+      return output;
+   }
 }
