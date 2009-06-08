@@ -7,11 +7,11 @@ import org.wroc.pwr.gtt.server.DBconnector;
 
 /**
  * Klasa rozszerzajaca wazona krawedz dodajaca etykiety - id lini i typ id oraz
- * druga wage. Metody zwracaja this ze wzgledu na konstrukcje metod z biblioteki
- * jgrapht - dodawanie krawedzie do grafu)
- *
+ * druga wage -- odleglosc przystankowa. Metody zwracaja this ze wzgledu na
+ * konstrukcje metod z biblioteki jgrapht - dodawanie krawedzie do grafu)
+ * 
  * @author Michal Brzezinski-Spiczak
- *
+ * 
  */
 public class WEdge extends DefaultWeightedEdge {
 	int line_id;
@@ -23,11 +23,11 @@ public class WEdge extends DefaultWeightedEdge {
 		return this;
 	}
 
-
-
 	public String toString() {
 		if (line_id != 1)
-			return dbconnector.getLineName(line_id) + "(" + dbconnector.getStopName((Integer) getSource()) + "," + dbconnector.getStopName((Integer) getTarget()) + ")";
+			return dbconnector.getLineName(line_id) + "("
+					+ dbconnector.getStopName((Integer) getSource()) + ","
+					+ dbconnector.getStopName((Integer) getTarget()) + ")";
 		else
 			return "";
 	}
@@ -41,14 +41,14 @@ public class WEdge extends DefaultWeightedEdge {
 		this.dbconnector = bconnector;
 		return this;
 	}
-	public Object getSourceVertex(){
+
+	public Object getSourceVertex() {
 		return getSource();
 	}
-	public Object getTargetVertex(){
+
+	public Object getTargetVertex() {
 		return getTarget();
 	}
-
-
 
 	public int getStop_distance() {
 		return stop_distance;

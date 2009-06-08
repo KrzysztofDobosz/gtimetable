@@ -2,37 +2,68 @@ package org.wroc.pwr.gtt.server.graphcreator;
 
 import java.util.ArrayList;
 
+/**
+ * Klasa reprezentujaca trase miedzy wybranymi przystankami (lista odcinkow)
+ * 
+ * @author Michal Brzezinski-Spiczak
+ * 
+ */
 public class Route implements Comparable {
-	ArrayList<Leg> trasa;
+	ArrayList<Leg> route;
 
+	/**
+	 * Bezargumentowy konstruktor trasy
+	 */
 	public Route() {
-		trasa = new ArrayList<Leg>();
+		route = new ArrayList<Leg>();
 	}
 
-	public void add(int p1, int p2, int linia_id, int stopsDistance) {
-		trasa.add(new Leg(p1, p2, linia_id, stopsDistance));
+	/**
+	 * Metoda dodajaca odcinek p1-p2(line_id) do trasy
+	 * 
+	 * @param p1
+	 *            -- poczatkowy przystanek dodawanego odcinka
+	 * @param p2
+	 *            -- koncowy przystanek dodawanego odcinka
+	 * @param line_id
+	 *            -- etykieta odcinka
+	 * @param stopsDistance
+	 *            -- odleglosc przytankowa odcinka
+	 */
+	public void add(int p1, int p2, int line_id, int stopsDistance) {
+		route.add(new Leg(p1, p2, line_id, stopsDistance));
 	}
 
 	public ArrayList<Leg> getTrasa() {
-		return trasa;
+		return route;
 	}
 
 	public String toString() {
 		String print = "";
-		for (Leg l : trasa)
+		for (Leg l : route)
 			print += "(" + l + ")";
 		return print;
 	}
 
+	/**
+	 * Metoda zwracajaca sumaryczna odleglosc przystankowa dla trasy
+	 * 
+	 * @return
+	 */
 	public int getStopsDistance() {
 		int distance = 0;
-		for (Leg el : trasa)
+		for (Leg el : route)
 			distance += el.getStopsDistance();
 		return distance;
 	}
 
+	/**
+	 * Metoda zwracajaca ilosc przesiadek na trasie
+	 * 
+	 * @return
+	 */
 	public int getChanges() {
-		return trasa.size();
+		return route.size();
 	}
 
 	public int compareTo(Object o) {
@@ -49,10 +80,10 @@ public class Route implements Comparable {
 			return 0;
 	}
 
-	public boolean contains(Route route) {
+	public boolean contains(Route route1) {
 		boolean contain = true;
-		for (int i = 0; i < route.trasa.size(); i++) {
-			if (!trasa.contains(route.trasa.get(i)))
+		for (int i = 0; i < route1.route.size(); i++) {
+			if (!route.contains(route1.route.get(i)))
 				contain = false;
 			break;
 		}
