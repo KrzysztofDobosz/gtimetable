@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -66,19 +67,19 @@ public class Client implements EntryPoint
    private ToggleButton addSpotButton;
    private Image addressSubmit;
    private TextBox addressSearch;
-   private Button stationSubmit;
-   private TextBox stationSearch;
+   private Button stopSubmit;
+   private TextBox stopSearch;
    private Button lineSubmit;
    private SuggestBox lineSearch;
    private ListBox variantList;
    private Geocoder geocoder;
    private InfoWindow info;
-   private ArrayList<Integer> stationsIds;
-   private ArrayList<LatLng> stationsCoords;
-   private ArrayList<Marker> currentStations;
-   private VerticalPanel route;
-   private Marker startSpot;
-   private Marker endSpot;
+   private ArrayList<Integer> stopsIds;
+   private ArrayList<LatLng> stopsCoords;
+   private ArrayList<GttMarker> currentStops;
+   private VerticalPanel sidePanel;
+   private GttMarker startSpot;
+   private GttMarker endSpot;
    private Image startIcon;
    private Image endIcon;
    private HTML start;
@@ -87,16 +88,133 @@ public class Client implements EntryPoint
    private CheckBox pospieszne;
    private CheckBox nocne;
    private Button findCourseButton;
-   private ListBox courseList;
+   private ArrayList<ArrayList<ArrayList<Integer>>> courses;
 
    private void findCourse()
+   {
+      sidePanel.clear();
+      if (startSpot == null || endSpot == null)
+      {
+         Window.alert("Nie określono punktu początkowego lub końcowego trasy");
+         return;
+      }
+      int startStops = 3;
+      int endStops = 3;
+      if (stopsCoords.contains(startSpot.getLatLng()))
+         startStops = 1;
+      if (stopsCoords.contains(endSpot.getLatLng()))
+         endStops = 1;
+      service.findCourse(normalne.isChecked(), pospieszne.isChecked(), nocne
+            .isChecked(), startSpot.getLatLng().getLatitude(), startSpot
+            .getLatLng().getLongitude(), endSpot.getLatLng().getLatitude(),
+            endSpot.getLatLng().getLongitude(), 3, startStops, endStops,
+            new AsyncCallback<ArrayList<ArrayList<ArrayList<Integer>>>>()
+            {
+               public void onFailure(Throwable caught)
+               {
+                  Window.alert("Failed to find course. " + caught.getMessage());
+               }
+
+               public void onSuccess(
+                     ArrayList<ArrayList<ArrayList<Integer>>> result)
+               {
+                  courses = result;
+                  for (int i = 0; i < courses.size(); i++)
+                  {
+                     System.out.println(courses.get(i));
+                     HorizontalPanel text = new HorizontalPanel();
+                     text.add(new HTML("Trasa " + i + ": "));
+                     for (int j = 0; j < courses.get(i).size(); j++)
+                     {
+                        for (int k = 1; k < courses.get(i).get(j).size(); k++)
+                        {
+                           ;
+                        }
+                        service.getLineName(courses.get(i).get(j).get(0),
+                              new AsyncCallback<String>()
+                              {
+                                 public void onFailure(Throwable caught)
+                                 {
+                                    Window
+                                          .alert("Failed to fetch line name in findCourse(). "
+                                                + caught.getMessage());
+                                 }
+
+                                 public void onSuccess(String result)
+                                 {
+                                    ;
+                                 }
+                              });
+                     }
+                  }
+                  showCourse(0);
+               }
+            });
+   }
+
+   private void showCourse(int courseIndex)
    {
       ;
    }
 
-   private void showCourse()
+   private VerticalPanel getRoutePanel(String title, ArrayList<GttMarker> stops)
    {
-      ;
+      VerticalPanel routePanel = new VerticalPanel();
+      HTML bigTitle = new HTML("<big>-- " + title + "</big>");
+      bigTitle.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            double lat = 0;
+            double lng = 0;
+            for (GttMarker stop : currentStops)
+            {
+               lat += stop.getLatLng().getLatitude();
+               lng += stop.getLatLng().getLongitude();
+            }
+            map.setCenter(LatLng.newInstance(lat / currentStops.size(), lng
+                  / currentStops.size()), 12);
+         }
+      });
+      routePanel.add(bigTitle);
+      for (int i = 0; i < stops.size(); i++)
+      {
+         final GttMarker stop = stops.get(i);
+         HorizontalPanel hor = new HorizontalPanel();
+         Image zoom = new Image("gfx/lupa_small.png");
+         hor.add(zoom);
+         final HTML stopName = new HTML("");
+         ClickListener click = new ClickListener()
+         {
+            public void onClick(Widget sender)
+            {
+               map.setCenter(stop.getLatLng(), 14);
+               info = map.getInfoWindow();
+               info.open(stop, stop.getContent());
+            }
+         };
+         zoom.addClickListener(click);
+         stopName.addClickListener(click);
+         service.getStopName(stopsIds
+               .get(stopsCoords.indexOf(stop.getLatLng())),
+               new AsyncCallback<String>()
+               {
+                  public void onFailure(Throwable caught)
+                  {
+                     Window
+                           .alert("Failed to fetch stop's name in getRoutePanel(). "
+                                 + caught.getMessage());
+                  }
+
+                  public void onSuccess(String result)
+                  {
+                     stopName.setHTML(result);
+                  }
+               });
+         hor.add(stopName);
+         routePanel.add(hor);
+      }
+      return routePanel;
    }
 
    private void findPlace()
@@ -111,25 +229,26 @@ public class Client implements EntryPoint
 
                public void onSuccess(LatLng point)
                {
-                  map.setCenter(point);
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
             });
    }
 
-   private void findStation()
+   private void findStop()
    {
-      for (Marker m : currentStations)
+      for (GttMarker m : currentStops)
       {
          map.removeOverlay(m);
       }
-      route.clear();
-      if (stationSearch.getText().length() < 3)
+      if (stopSearch.getText().length() < 3)
       {
          Window.alert("Nazwa przystanku powinna mieć przynajmniej 3 znaki.");
          return;
       }
-      service.getStopIds(stationSearch.getText(),
+      service.getStopIds(stopSearch.getText(),
             new AsyncCallback<ArrayList<Integer>>()
             {
                public void onFailure(Throwable caught)
@@ -141,14 +260,31 @@ public class Client implements EntryPoint
 
                public void onSuccess(ArrayList<Integer> result)
                {
+                  ArrayList<GttMarker> markers = new ArrayList<GttMarker>();
+                  double lat = 0;
+                  double lng = 0;
                   for (int i = 0; i < result.size(); i++)
                   {
-                     Integer id = result.get(i);
-                     if (stationsIds.contains(id))
+                     int id = result.get(i);
+                     if (stopsIds.contains(id))
                      {
-                        addStationMarker(id, stationsCoords.get(stationsIds
-                              .indexOf(id)));
+                        GttMarker m = getStopMarker(id, stopsCoords
+                              .get(stopsIds.indexOf(id)));
+                        lat += m.getLatLng().getLatitude();
+                        lng += m.getLatLng().getLongitude();
+                        markers.add(m);
+                        map.addOverlay(m);
                      }
+                  }
+                  map.setCenter(LatLng.newInstance(lat / result.size(), lng
+                        / result.size()), 12);
+                  VerticalPanel vert = getRoutePanel(stopSearch.getText(),
+                        markers);
+                  sidePanel.clear();
+                  int max = vert.getWidgetCount();
+                  for (int i = 0; i < max; i++)
+                  {
+                     sidePanel.add(vert.getWidget(0));
                   }
                }
             });
@@ -156,11 +292,10 @@ public class Client implements EntryPoint
 
    private void showLine()
    {
-      for (Marker m : currentStations)
+      for (GttMarker m : currentStops)
       {
          map.removeOverlay(m);
       }
-      route.clear();
       service.getLineId(lineSearch.getText(), variantList.getValue(variantList
             .getSelectedIndex()), new AsyncCallback<Integer>()
       {
@@ -185,14 +320,33 @@ public class Client implements EntryPoint
 
                      public void onSuccess(ArrayList<Integer> result)
                      {
+                        ArrayList<GttMarker> markers = new ArrayList<GttMarker>();
+                        double lat = 0;
+                        double lng = 0;
                         for (int i = 0; i < result.size(); i++)
                         {
-                           Integer id = result.get(i);
-                           if (stationsIds.contains(id))
+                           int id = result.get(i);
+                           if (stopsIds.contains(id))
                            {
-                              addStationMarker(id, stationsCoords
-                                    .get(stationsIds.indexOf(id)));
+                              GttMarker m = getStopMarker(id, stopsCoords
+                                    .get(stopsIds.indexOf(id)));
+                              lat += m.getLatLng().getLatitude();
+                              lng += m.getLatLng().getLongitude();
+                              markers.add(m);
+                              map.addOverlay(m);
                            }
+                        }
+                        map.setCenter(LatLng.newInstance(lat / result.size(),
+                              lng / result.size()), 12);
+                        VerticalPanel vert = getRoutePanel(lineSearch.getText()
+                              + ": "
+                              + variantList.getValue(variantList
+                                    .getSelectedIndex()), markers);
+                        sidePanel.clear();
+                        int max = vert.getWidgetCount();
+                        for (int i = 0; i < max; i++)
+                        {
+                           sidePanel.add(vert.getWidget(0));
                         }
                      }
                   });
@@ -386,13 +540,26 @@ public class Client implements EntryPoint
 
       final PopupPanel timetableWindow = new PopupPanel(true);
       timetableWindow.setAnimationEnabled(true);
-      timetableWindow.setWidget(timetable);
+      Button close = new Button("Zamknij");
+      close.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            timetableWindow.hide();
+         }
+      });
+      VerticalPanel panel = new VerticalPanel();
+      panel.add(timetable);
+      panel.add(close);
+      panel.setCellHorizontalAlignment(close,
+            HasHorizontalAlignment.ALIGN_RIGHT);
+      timetableWindow.setWidget(panel);
       timetableWindow.center();
    }
 
-   private void addSpotMarker(LatLng point)
+   private GttMarker getSpotMarker(LatLng point)
    {
-      map.panTo(point);
+      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       options.setDraggable(true);
       Icon icon = Icon
@@ -404,7 +571,7 @@ public class Client implements EntryPoint
       icon.setIconAnchor(Point.newInstance(6, 20));
       icon.setInfoWindowAnchor(Point.newInstance(5, 1));
       options.setIcon(icon);
-      final Marker marker = new Marker(point, options);
+      final GttMarker marker = new GttMarker(point, options);
 
       final VerticalPanel panel = new VerticalPanel();
 
@@ -437,20 +604,26 @@ public class Client implements EntryPoint
             {
                LatLng point = startSpot.getLatLng();
                map.removeOverlay(startSpot);
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
                else
                {
                   boolean isCurrent = false;
-                  for (int i = 0; i < currentStations.size(); i++)
+                  for (int i = 0; i < currentStops.size(); i++)
                   {
-                     if (currentStations.get(i).getLatLng() == point)
+                     if (currentStops.get(i).getLatLng() == point)
                      {
                         isCurrent = true;
                         break;
@@ -458,14 +631,14 @@ public class Client implements EntryPoint
                   }
                   if (isCurrent)
                   {
-                     addStationMarker(stationsIds.get(stationsCoords
-                           .indexOf(point)), point);
+                     map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                           .indexOf(point)), point));
                   }
                }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addStartMarker(loc.getText(), point);
+            map.addOverlay(getStartMarker(loc.getText(), point));
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -477,20 +650,26 @@ public class Client implements EntryPoint
             {
                LatLng point = endSpot.getLatLng();
                map.removeOverlay(endSpot);
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
                else
                {
                   boolean isCurrent = false;
-                  for (int i = 0; i < currentStations.size(); i++)
+                  for (int i = 0; i < currentStops.size(); i++)
                   {
-                     if (currentStations.get(i).getLatLng() == point)
+                     if (currentStops.get(i).getLatLng() == point)
                      {
                         isCurrent = true;
                         break;
@@ -498,14 +677,14 @@ public class Client implements EntryPoint
                   }
                   if (isCurrent)
                   {
-                     addStationMarker(stationsIds.get(stationsCoords
-                           .indexOf(point)), point);
+                     map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                           .indexOf(point)), point));
                   }
                }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addEndMarker(loc.getText(), point);
+            map.addOverlay(getEndMarker(loc.getText(), point));
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -535,7 +714,10 @@ public class Client implements EntryPoint
       {
          public void onDragEnd(MarkerDragEndEvent event)
          {
-            addSpotMarker(marker.getLatLng());
+            GttMarker m = getSpotMarker(marker.getLatLng());
+            map.addOverlay(m);
+            info = map.getInfoWindow();
+            info.open(m, m.getContent());
             map.removeOverlay(marker);
          }
       });
@@ -547,20 +729,19 @@ public class Client implements EntryPoint
             info.setVisible(false);
          }
       });
+      marker.setContent(content);
 
-      map.addOverlay(marker);
-      info = map.getInfoWindow();
-      info.open(marker, content);
+      return marker;
    }
 
-   private void addStationMarker(Integer stationId, LatLng point)
+   private GttMarker getStopMarker(Integer stopId, LatLng point)
    {
-      if (stationsIds.size() == 0)
+      if (stopsIds.size() == 0)
       {
-         return;
+         return null;
       }
-      final Integer przyst_id = stationId;
-      map.panTo(point);
+      final Integer przyst_id = stopId;
+      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://labs.google.com/ridefinder/images/mm_20_blue.png");
@@ -571,31 +752,28 @@ public class Client implements EntryPoint
       icon.setIconAnchor(Point.newInstance(6, 20));
       icon.setInfoWindowAnchor(Point.newInstance(5, 1));
       options.setIcon(icon);
-      final Marker marker = new Marker(point, options);
+      final GttMarker marker = new GttMarker(point, options);
 
       final VerticalPanel panel = new VerticalPanel();
 
       final Label name = new Label("");
-      final Label station = new Label("");
-      route.add(station);
       panel.add(name);
-      service.getStopName(stationId, new AsyncCallback<String>()
+      service.getStopName(stopId, new AsyncCallback<String>()
       {
          public void onFailure(Throwable caught)
          {
-            Window
-                  .alert("Failed to fetch station name. " + caught.getMessage());
+            Window.alert("Failed to fetch stop name in getStopMarker(). "
+                  + caught.getMessage());
          }
 
          public void onSuccess(String result)
          {
             name.setText(result);
-            station.setText(result);
          }
       });
 
       final HorizontalPanel lines = new HorizontalPanel();
-      service.getLinesViaStop(stationId, new AsyncCallback<ArrayList<String>>()
+      service.getLinesViaStop(stopId, new AsyncCallback<ArrayList<String>>()
       {
          public void onFailure(Throwable caught)
          {
@@ -612,8 +790,8 @@ public class Client implements EntryPoint
                {
                   public void onClick(Widget sender)
                   {
-                     showTimetable(przyst_id, station.getText(),
-                           ((Label) sender).getText());
+                     showTimetable(przyst_id, name.getText(), ((Label) sender)
+                           .getText());
                   }
                });
                lines.add(new Label(", "));
@@ -633,16 +811,19 @@ public class Client implements EntryPoint
             {
                LatLng point = startSpot.getLatLng();
                map.removeOverlay(startSpot);
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
                else
                {
                   boolean isCurrent = false;
-                  for (int i = 0; i < currentStations.size(); i++)
+                  for (int i = 0; i < currentStops.size(); i++)
                   {
-                     if (currentStations.get(i).getLatLng() == point)
+                     if (currentStops.get(i).getLatLng() == point)
                      {
                         isCurrent = true;
                         break;
@@ -650,14 +831,14 @@ public class Client implements EntryPoint
                   }
                   if (isCurrent)
                   {
-                     addStationMarker(stationsIds.get(stationsCoords
-                           .indexOf(point)), point);
+                     map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                           .indexOf(point)), point));
                   }
                }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addStartMarker(name.getText(), point);
+            map.addOverlay(getStartMarker(name.getText(), point));
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -669,16 +850,19 @@ public class Client implements EntryPoint
             {
                LatLng point = endSpot.getLatLng();
                map.removeOverlay(endSpot);
-               if (stationsCoords.contains(point) == false)
+               if (stopsCoords.contains(point) == false)
                {
-                  addSpotMarker(point);
+                  GttMarker m = getSpotMarker(point);
+                  map.addOverlay(m);
+                  info = map.getInfoWindow();
+                  info.open(m, m.getContent());
                }
                else
                {
                   boolean isCurrent = false;
-                  for (int i = 0; i < currentStations.size(); i++)
+                  for (int i = 0; i < currentStops.size(); i++)
                   {
-                     if (currentStations.get(i).getLatLng() == point)
+                     if (currentStops.get(i).getLatLng() == point)
                      {
                         isCurrent = true;
                         break;
@@ -686,14 +870,14 @@ public class Client implements EntryPoint
                   }
                   if (isCurrent)
                   {
-                     addStationMarker(stationsIds.get(stationsCoords
-                           .indexOf(point)), point);
+                     map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                           .indexOf(point)), point));
                   }
                }
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            addEndMarker(name.getText(), point);
+            map.addOverlay(getEndMarker(name.getText(), point));
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -709,23 +893,15 @@ public class Client implements EntryPoint
             info.open(marker, content);
          }
       });
-      station.addClickListener(new ClickListener()
-      {
-         public void onClick(Widget sender)
-         {
-            map.panTo(marker.getLatLng());
-            info = map.getInfoWindow();
-            info.open(marker, content);
-         }
-      });
+      marker.setContent(content);
 
-      map.addOverlay(marker);
-      currentStations.add(marker);
+      currentStops.add(marker);
+      return marker;
    }
 
-   private void addStartMarker(String place, LatLng point)
+   private GttMarker getStartMarker(String place, LatLng point)
    {
-      map.panTo(point);
+      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-start.png");
@@ -736,7 +912,7 @@ public class Client implements EntryPoint
       icon.setIconAnchor(Point.newInstance(9, 34));
       icon.setInfoWindowAnchor(Point.newInstance(9, 2));
       options.setIcon(icon);
-      final Marker marker = new Marker(point, options);
+      final GttMarker marker = new GttMarker(point, options);
 
       final VerticalPanel panel = new VerticalPanel();
 
@@ -753,16 +929,19 @@ public class Client implements EntryPoint
             map.removeOverlay(marker);
             startSpot = null;
             start.setHTML("");
-            if (stationsCoords.contains(point) == false)
+            if (stopsCoords.contains(point) == false)
             {
-               addSpotMarker(point);
+               GttMarker m = getSpotMarker(point);
+               map.addOverlay(m);
+               info = map.getInfoWindow();
+               info.open(m, m.getContent());
             }
             else
             {
                boolean isCurrent = false;
-               for (int i = 0; i < currentStations.size(); i++)
+               for (int i = 0; i < currentStops.size(); i++)
                {
-                  if (currentStations.get(i).getLatLng() == point)
+                  if (currentStops.get(i).getLatLng() == point)
                   {
                      isCurrent = true;
                      break;
@@ -770,15 +949,15 @@ public class Client implements EntryPoint
                }
                if (isCurrent)
                {
-                  addStationMarker(stationsIds.get(stationsCoords
-                        .indexOf(point)), point);
+                  map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                        .indexOf(point)), point));
                }
             }
          }
       });
       panel.add(anuluj);
       panel.add(new Label("\n"));
-      if (stationsCoords.contains(point) == false)
+      if (stopsCoords.contains(point) == false)
       {
          final Label usun = new Label("Usuń");
          usun.addClickListener(new ClickListener()
@@ -802,16 +981,17 @@ public class Client implements EntryPoint
             info.open(marker, content);
          }
       });
+      marker.setContent(content);
 
-      map.addOverlay(marker);
       info = map.getInfoWindow();
       info.open(marker, content);
       startSpot = marker;
+      return marker;
    }
 
-   private void addEndMarker(String place, LatLng point)
+   private GttMarker getEndMarker(String place, LatLng point)
    {
-      map.panTo(point);
+      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-end.png");
@@ -822,7 +1002,7 @@ public class Client implements EntryPoint
       icon.setIconAnchor(Point.newInstance(9, 34));
       icon.setInfoWindowAnchor(Point.newInstance(9, 2));
       options.setIcon(icon);
-      final Marker marker = new Marker(point, options);
+      final GttMarker marker = new GttMarker(point, options);
 
       final VerticalPanel panel = new VerticalPanel();
 
@@ -839,16 +1019,19 @@ public class Client implements EntryPoint
             map.removeOverlay(marker);
             endSpot = null;
             end.setHTML("");
-            if (stationsCoords.contains(point) == false)
+            if (stopsCoords.contains(point) == false)
             {
-               addSpotMarker(point);
+               GttMarker m = getSpotMarker(point);
+               map.addOverlay(m);
+               info = map.getInfoWindow();
+               info.open(m, m.getContent());
             }
             else
             {
                boolean isCurrent = false;
-               for (int i = 0; i < currentStations.size(); i++)
+               for (int i = 0; i < currentStops.size(); i++)
                {
-                  if (currentStations.get(i).getLatLng() == point)
+                  if (currentStops.get(i).getLatLng() == point)
                   {
                      isCurrent = true;
                      break;
@@ -856,15 +1039,15 @@ public class Client implements EntryPoint
                }
                if (isCurrent)
                {
-                  addStationMarker(stationsIds.get(stationsCoords
-                        .indexOf(point)), point);
+                  map.addOverlay(getStopMarker(stopsIds.get(stopsCoords
+                        .indexOf(point)), point));
                }
             }
          }
       });
       panel.add(anuluj);
       panel.add(new Label("\n"));
-      if (stationsCoords.contains(point) == false)
+      if (stopsCoords.contains(point) == false)
       {
          final Label usun = new Label("Usuń");
          usun.addClickListener(new ClickListener()
@@ -888,39 +1071,40 @@ public class Client implements EntryPoint
             info.open(marker, content);
          }
       });
+      marker.setContent(content);
 
-      map.addOverlay(marker);
       info = map.getInfoWindow();
       info.open(marker, content);
       endSpot = marker;
+      return marker;
    }
 
    public Client()
    {
       geocoder = new Geocoder();
 
-      stationsIds = new ArrayList<Integer>();
-      stationsCoords = new ArrayList<LatLng>();
-      currentStations = new ArrayList<Marker>();
-      route = new VerticalPanel();
+      stopsIds = new ArrayList<Integer>();
+      stopsCoords = new ArrayList<LatLng>();
+      currentStops = new ArrayList<GttMarker>();
+      sidePanel = new VerticalPanel();
 
-      stationSearch = new TextBox();
-      stationSearch.addKeyboardListener(new KeyboardListenerAdapter()
+      stopSearch = new TextBox();
+      stopSearch.addKeyboardListener(new KeyboardListenerAdapter()
       {
          public void onKeyPress(Widget sender, char keyCode, int modifiers)
          {
             if (keyCode == (char) KEY_ENTER)
             {
-               findStation();
+               findStop();
             }
          }
       });
-      stationSubmit = new Button("Szukaj");
-      stationSubmit.addClickListener(new ClickListener()
+      stopSubmit = new Button("Szukaj");
+      stopSubmit.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
          {
-            findStation();
+            findStop();
          }
       });
 
@@ -988,7 +1172,10 @@ public class Client implements EntryPoint
       {
          public void onClick(MapClickEvent event)
          {
-            addSpotMarker(event.getLatLng());
+            GttMarker marker = getSpotMarker(event.getLatLng());
+            map.addOverlay(marker);
+            info = map.getInfoWindow();
+            info.open(marker, marker.getContent());
             addSpotButton.setDown(false);
             map.removeMapClickHandler(addSpotHandler);
          }
@@ -1021,7 +1208,7 @@ public class Client implements EntryPoint
          {
             if (startSpot != null)
             {
-               map.panTo(startSpot.getLatLng());
+               map.setCenter(startSpot.getLatLng());
             }
          }
       });
@@ -1033,7 +1220,7 @@ public class Client implements EntryPoint
          {
             if (endSpot != null)
             {
-               map.panTo(endSpot.getLatLng());
+               map.setCenter(endSpot.getLatLng());
             }
          }
       });
@@ -1047,21 +1234,13 @@ public class Client implements EntryPoint
             findCourse();
          }
       });
-      courseList = new ListBox(false);
-      courseList.addChangeListener(new ChangeListener()
-      {
-         public void onChange(Widget sender)
-         {
-            showCourse();
-         }
-      });
 
       map = new MapWidget(LatLng.newInstance(51.1078852, 17.0385376), 13);
       map.addControl(new LargeMapControl());
       map.addControl(new MapTypeControl());
       map.setContinuousZoom(true);
       map.setDoubleClickZoom(true);
-      map.setScrollWheelZoomEnabled(true);
+      map.setScrollWheelZoomEnabled(false);
       map.clearOverlays();
 
       service = GttService.Util.getInstance();
@@ -1079,9 +1258,9 @@ public class Client implements EntryPoint
                   Set<Integer> set = result.keySet();
                   for (Integer key : set)
                   {
-                     stationsIds.add(key);
-                     stationsCoords.add(LatLng.newInstance(result.get(key).get(
-                           0), result.get(key).get(1)));
+                     stopsIds.add(key);
+                     stopsCoords.add(LatLng.newInstance(result.get(key).get(0),
+                           result.get(key).get(1)));
                   }
                }
             });
@@ -1136,25 +1315,23 @@ public class Client implements EntryPoint
       center.add(endIcon, 152, 297);
       center.add(end, 180, 305);
 
-      courseList.setWidth("155px");
-      center.add(courseList, 56, 343);
       center.add(findCourseButton, 224, 340);
 
       ScrollPanel scroll = new ScrollPanel();
       scroll.setSize("267px", "380px");
-      scroll.setWidget(route);
+      scroll.setWidget(sidePanel);
       for (int i = 0; i < 50; i++)
       {
-         route.add(new Label("A"));
+         sidePanel.add(new Label("A"));
       }
       center.add(scroll, 56, 383);
 
       center.add(new HTML("wyszukaj przystanek:"), 383, 670);
-      stationSearch.setVisibleLength(20);
-      center.add(stationSearch, 529, 668);
-      stationSubmit.setPixelSize(57, 19);
-      stationSubmit.addStyleDependentName("station");
-      center.add(stationSubmit, 699, 668);
+      stopSearch.setVisibleLength(20);
+      center.add(stopSearch, 529, 668);
+      stopSubmit.setPixelSize(57, 19);
+      stopSubmit.addStyleDependentName("station");
+      center.add(stopSubmit, 699, 668);
 
       center.add(new HTML("dostępne linie:"), 383, 700);
       lineSearch.setLimit(4);

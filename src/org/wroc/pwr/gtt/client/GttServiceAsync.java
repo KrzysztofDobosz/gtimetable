@@ -54,7 +54,7 @@ public interface GttServiceAsync
 
    public void getAllCoordinates(AsyncCallback<HashMap<Integer, ArrayList<Double>>> callback);
 
-   public void findCourse(
-         boolean normal, boolean fast, boolean night, double xLat, double xLng,
-         double yLat, double yLng, int amount, int cx, int cy, AsyncCallback<HashMap<ArrayList<ArrayList<ArrayList<Integer>>>, HashMap<Integer, String>>> callback);
+   public void findCourse(boolean normal,
+         boolean fast, boolean night, double xLat, double xLng, double yLat,
+         double yLng, int amount, int cx, int cy, AsyncCallback<ArrayList<ArrayList<ArrayList<Integer>>>> callback);
 }
