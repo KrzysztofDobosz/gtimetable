@@ -3,16 +3,18 @@ package org.wroc.pwr.gtt.client;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
-
-import org.wroc.pwr.gtt.server.Coordinates;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
+/**
+ * Interfejs do komunikacji z serwerem.
+ *
+ * @author Krzysztof Dobosz
+ *
+ */
 @RemoteServiceRelativePath("GttService")
 public interface GttService extends RemoteService
 {
@@ -69,4 +71,5 @@ public interface GttService extends RemoteService
    public ArrayList<ArrayList<ArrayList<Integer>>> findCourse(boolean normal,
          boolean fast, boolean night, double xLat, double xLng, double yLat,
          double yLng, int amount, int cx, int cy);
+
 }
