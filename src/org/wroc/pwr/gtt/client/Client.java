@@ -17,6 +17,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
@@ -88,7 +89,7 @@ public class Client implements EntryPoint
    private CheckBox pospieszne;
    private CheckBox nocne;
    private Button findCourseButton;
-   private ArrayList<ArrayList<ArrayList<Integer>>> courses;
+   private ArrayList<ArrayList<GttMarker>> courses;
 
    private void findCourse()
    {
@@ -118,19 +119,28 @@ public class Client implements EntryPoint
                public void onSuccess(
                      ArrayList<ArrayList<ArrayList<Integer>>> result)
                {
-                  courses = result;
-                  for (int i = 0; i < courses.size(); i++)
+                  sidePanel.clear();
+                  for (int i = 0; i < result.size(); i++)
                   {
-                     System.out.println(courses.get(i));
-                     HorizontalPanel text = new HorizontalPanel();
-                     text.add(new HTML("Trasa " + i + ": "));
-                     for (int j = 0; j < courses.get(i).size(); j++)
+                     ArrayList<GttMarker> courseMarkers = new ArrayList<GttMarker>();
+                     final int iPrim = i;
+                     final VerticalPanel list = new VerticalPanel();
+                     for (int j = 0; j < result.get(i).size(); j++)
                      {
-                        for (int k = 1; k < courses.get(i).get(j).size(); k++)
+                        final ArrayList<GttMarker> markers = new ArrayList<GttMarker>();
+                        for (int k = 1; k < result.get(i).get(j).size(); k++)
                         {
-                           ;
+                           int id = result.get(i).get(j).get(k);
+                           if (stopsIds.contains(id))
+                           {
+                              GttMarker m = getStopMarker(id, stopsCoords
+                                    .get(stopsIds.indexOf(id)));
+                              markers.add(m);
+                              courseMarkers.add(m);
+                           }
                         }
-                        service.getLineName(courses.get(i).get(j).get(0),
+                        final int jPrim = j;
+                        service.getLineName(result.get(i).get(j).get(0),
                               new AsyncCallback<String>()
                               {
                                  public void onFailure(Throwable caught)
@@ -142,10 +152,26 @@ public class Client implements EntryPoint
 
                                  public void onSuccess(String result)
                                  {
-                                    ;
+                                    list.insert(getRoutePanel(result, markers),
+                                          jPrim);
                                  }
                               });
                      }
+                     HTML head = new HTML("<big>-- Trasa " + (i + 1) + ": </big>");
+                     head.addClickListener(new ClickListener()
+                     {
+                        public void onClick(Widget sender)
+                        {
+                           showCourse(iPrim);
+                        }
+                     });
+                     courses.add(courseMarkers);
+                     DisclosurePanel disc = new DisclosurePanel(head);
+                     disc.setAnimationEnabled(true);
+                     disc.setContent(list);
+                     sidePanel.add(disc);
+                     if (i == 0)
+                        disc.setOpen(true);
                   }
                   showCourse(0);
                }
@@ -154,32 +180,36 @@ public class Client implements EntryPoint
 
    private void showCourse(int courseIndex)
    {
-      ;
+      for (GttMarker m : currentStops)
+      {
+         map.removeOverlay(m);
+      }
+      ArrayList<GttMarker> markers = courses.get(courseIndex);
+      double lat = 0;
+      double lng = 0;
+      for (int i = 0; i < markers.size(); i++)
+      {
+         GttMarker m = markers.get(i);
+         lat += m.getLatLng().getLatitude();
+         lng += m.getLatLng().getLongitude();
+         map.addOverlay(m);
+      }
+      map.setCenter(LatLng.newInstance(lat / markers.size(), lng
+            / markers.size()), 12);
    }
 
    private VerticalPanel getRoutePanel(String title, ArrayList<GttMarker> stops)
    {
       VerticalPanel routePanel = new VerticalPanel();
       HTML bigTitle = new HTML("<big>-- " + title + "</big>");
-      bigTitle.addClickListener(new ClickListener()
-      {
-         public void onClick(Widget sender)
-         {
-            double lat = 0;
-            double lng = 0;
-            for (GttMarker stop : currentStops)
-            {
-               lat += stop.getLatLng().getLatitude();
-               lng += stop.getLatLng().getLongitude();
-            }
-            map.setCenter(LatLng.newInstance(lat / currentStops.size(), lng
-                  / currentStops.size()), 12);
-         }
-      });
       routePanel.add(bigTitle);
+      double lat = 0;
+      double lng = 0;
       for (int i = 0; i < stops.size(); i++)
       {
          final GttMarker stop = stops.get(i);
+         lat += stop.getLatLng().getLatitude();
+         lng += stop.getLatLng().getLongitude();
          HorizontalPanel hor = new HorizontalPanel();
          Image zoom = new Image("gfx/lupa_small.png");
          hor.add(zoom);
@@ -214,6 +244,15 @@ public class Client implements EntryPoint
          hor.add(stopName);
          routePanel.add(hor);
       }
+      final double latPrim = lat / stops.size();
+      final double lngPrim = lng / stops.size();
+      bigTitle.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            map.setCenter(LatLng.newInstance(latPrim, lngPrim), 12);
+         }
+      });
       return routePanel;
    }
 
@@ -606,17 +645,7 @@ public class Client implements EntryPoint
                map.removeOverlay(startSpot);
                if (stopsCoords.contains(point) == false)
                {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
-               }
-               if (stopsCoords.contains(point) == false)
-               {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
+                  map.addOverlay(getSpotMarker(point));
                }
                else
                {
@@ -638,7 +667,10 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            map.addOverlay(getStartMarker(loc.getText(), point));
+            GttMarker m = getStartMarker(loc.getText(), point);
+            map.addOverlay(m);
+            info = map.getInfoWindow();
+            info.open(m, m.getContent());
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -652,17 +684,7 @@ public class Client implements EntryPoint
                map.removeOverlay(endSpot);
                if (stopsCoords.contains(point) == false)
                {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
-               }
-               if (stopsCoords.contains(point) == false)
-               {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
+                  map.addOverlay(getSpotMarker(point));
                }
                else
                {
@@ -684,7 +706,10 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            map.addOverlay(getEndMarker(loc.getText(), point));
+            GttMarker m = getEndMarker(loc.getText(), point);
+            map.addOverlay(m);
+            info = map.getInfoWindow();
+            info.open(m, m.getContent());
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -813,10 +838,7 @@ public class Client implements EntryPoint
                map.removeOverlay(startSpot);
                if (stopsCoords.contains(point) == false)
                {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
+                  map.addOverlay(getSpotMarker(point));
                }
                else
                {
@@ -838,7 +860,10 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            map.addOverlay(getStartMarker(name.getText(), point));
+            GttMarker m = getStartMarker(name.getText(), point);
+            map.addOverlay(m);
+            info = map.getInfoWindow();
+            info.open(m, m.getContent());
          }
       });
       final Label koniec = new Label("- koniec trasy");
@@ -852,10 +877,7 @@ public class Client implements EntryPoint
                map.removeOverlay(endSpot);
                if (stopsCoords.contains(point) == false)
                {
-                  GttMarker m = getSpotMarker(point);
-                  map.addOverlay(m);
-                  info = map.getInfoWindow();
-                  info.open(m, m.getContent());
+                  map.addOverlay(getSpotMarker(point));
                }
                else
                {
@@ -877,7 +899,10 @@ public class Client implements EntryPoint
             }
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
-            map.addOverlay(getEndMarker(name.getText(), point));
+            GttMarker m = getEndMarker(name.getText(), point);
+            map.addOverlay(m);
+            info = map.getInfoWindow();
+            info.open(m, m.getContent());
          }
       });
       panel.add(new Label("Oznacz jako:"));
@@ -931,10 +956,7 @@ public class Client implements EntryPoint
             start.setHTML("");
             if (stopsCoords.contains(point) == false)
             {
-               GttMarker m = getSpotMarker(point);
-               map.addOverlay(m);
-               info = map.getInfoWindow();
-               info.open(m, m.getContent());
+               map.addOverlay(getSpotMarker(point));
             }
             else
             {
@@ -983,8 +1005,6 @@ public class Client implements EntryPoint
       });
       marker.setContent(content);
 
-      info = map.getInfoWindow();
-      info.open(marker, content);
       startSpot = marker;
       return marker;
    }
@@ -1021,10 +1041,7 @@ public class Client implements EntryPoint
             end.setHTML("");
             if (stopsCoords.contains(point) == false)
             {
-               GttMarker m = getSpotMarker(point);
-               map.addOverlay(m);
-               info = map.getInfoWindow();
-               info.open(m, m.getContent());
+               map.addOverlay(getSpotMarker(point));
             }
             else
             {
@@ -1073,8 +1090,6 @@ public class Client implements EntryPoint
       });
       marker.setContent(content);
 
-      info = map.getInfoWindow();
-      info.open(marker, content);
       endSpot = marker;
       return marker;
    }
@@ -1086,6 +1101,7 @@ public class Client implements EntryPoint
       stopsIds = new ArrayList<Integer>();
       stopsCoords = new ArrayList<LatLng>();
       currentStops = new ArrayList<GttMarker>();
+      courses = new ArrayList<ArrayList<GttMarker>>();
       sidePanel = new VerticalPanel();
 
       stopSearch = new TextBox();
