@@ -5,6 +5,13 @@ import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.maps.client.overlay.Marker;
 import com.google.gwt.maps.client.overlay.MarkerOptions;
 
+/**
+ * Klasa dziedziczaca po klasie Marker z gwt. Ma dodatkowe
+ * pole - InfoWindowContent.
+ *
+ * @author Krzysztof Dobosz
+ *
+ */
 public class GttMarker extends Marker
 {
    private InfoWindowContent content;

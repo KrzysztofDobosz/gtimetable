@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -29,12 +28,10 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
@@ -52,21 +49,26 @@ import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.maps.client.geom.Point;
 import com.google.gwt.maps.client.geom.Size;
 import com.google.gwt.maps.client.overlay.Icon;
-import com.google.gwt.maps.client.overlay.Marker;
 import com.google.gwt.maps.client.overlay.MarkerOptions;
 import com.google.gwt.maps.client.event.MapClickHandler;
-import com.google.gwt.maps.client.event.MapDoubleClickHandler;
 import com.google.gwt.maps.client.event.MarkerClickHandler;
 import com.google.gwt.maps.client.event.MarkerDragEndHandler;
 import com.google.gwt.maps.client.event.MarkerDragStartHandler;
 
+/**
+ * Glowna klasa aplikacji klienckiej. Definiuje caly wyglad i funkcjonalnosc
+ * graficznego interfejsu.
+ *
+ * @author Krzysztof Dobosz
+ *
+ */
 public class Client implements EntryPoint
 {
    private GttServiceAsync service;
    private MapWidget map;
    private MapClickHandler addSpotHandler;
-   private ToggleButton addSpotButton;
-   private Image addressSubmit;
+   private Image addSpotButton;
+   private Button addressSubmit;
    private TextBox addressSearch;
    private Button stopSubmit;
    private TextBox stopSearch;
@@ -85,15 +87,21 @@ public class Client implements EntryPoint
    private Image endIcon;
    private HTML start;
    private HTML end;
+   private Image change;
    private CheckBox normalne;
    private CheckBox pospieszne;
    private CheckBox nocne;
    private Button findCourseButton;
    private ArrayList<ArrayList<GttMarker>> courses;
+   private Button update;
 
+   /**
+    * Procedura do znajdowania tras miedzy dwoma punktami na mapie zadanymi
+    * przez wspolrzedne geograficze.
+    */
    private void findCourse()
    {
-      sidePanel.clear();
+      courses.clear();
       if (startSpot == null || endSpot == null)
       {
          Window.alert("Nie określono punktu początkowego lub końcowego trasy");
@@ -108,7 +116,7 @@ public class Client implements EntryPoint
       service.findCourse(normalne.isChecked(), pospieszne.isChecked(), nocne
             .isChecked(), startSpot.getLatLng().getLatitude(), startSpot
             .getLatLng().getLongitude(), endSpot.getLatLng().getLatitude(),
-            endSpot.getLatLng().getLongitude(), 3, startStops, endStops,
+            endSpot.getLatLng().getLongitude(), 5, startStops, endStops,
             new AsyncCallback<ArrayList<ArrayList<ArrayList<Integer>>>>()
             {
                public void onFailure(Throwable caught)
@@ -157,7 +165,8 @@ public class Client implements EntryPoint
                                  }
                               });
                      }
-                     HTML head = new HTML("<big>-- Trasa " + (i + 1) + ": </big>");
+                     HTML head = new HTML("<big>-- Trasa " + (i + 1)
+                           + ": </big>");
                      head.addClickListener(new ClickListener()
                      {
                         public void onClick(Widget sender)
@@ -170,14 +179,17 @@ public class Client implements EntryPoint
                      disc.setAnimationEnabled(true);
                      disc.setContent(list);
                      sidePanel.add(disc);
-                     if (i == 0)
-                        disc.setOpen(true);
                   }
                   showCourse(0);
                }
             });
    }
 
+   /**
+    * Pokazuje na mapie przystanki z trasy o indeksie courseIndex.
+    *
+    * @param courseIndex
+    */
    private void showCourse(int courseIndex)
    {
       for (GttMarker m : currentStops)
@@ -190,6 +202,7 @@ public class Client implements EntryPoint
       for (int i = 0; i < markers.size(); i++)
       {
          GttMarker m = markers.get(i);
+         currentStops.add(m);
          lat += m.getLatLng().getLatitude();
          lng += m.getLatLng().getLongitude();
          map.addOverlay(m);
@@ -198,6 +211,13 @@ public class Client implements EntryPoint
             / markers.size()), 12);
    }
 
+   /**
+    * Tworzy pionowy panel z zadanym tytulem i lista przystankow.
+    *
+    * @param title
+    * @param stops
+    * @return
+    */
    private VerticalPanel getRoutePanel(String title, ArrayList<GttMarker> stops)
    {
       VerticalPanel routePanel = new VerticalPanel();
@@ -219,8 +239,23 @@ public class Client implements EntryPoint
             public void onClick(Widget sender)
             {
                map.setCenter(stop.getLatLng(), 14);
-               info = map.getInfoWindow();
-               info.open(stop, stop.getContent());
+               if (startSpot != null
+                     && stop.getLatLng().isEquals(startSpot.getLatLng()))
+               {
+                  info = map.getInfoWindow();
+                  info.open(startSpot, startSpot.getContent());
+               }
+               else if (endSpot != null
+                     && stop.getLatLng().isEquals(endSpot.getLatLng()))
+               {
+                  info = map.getInfoWindow();
+                  info.open(endSpot, endSpot.getContent());
+               }
+               else
+               {
+                  info = map.getInfoWindow();
+                  info.open(stop, stop.getContent());
+               }
             }
          };
          zoom.addClickListener(click);
@@ -256,6 +291,9 @@ public class Client implements EntryPoint
       return routePanel;
    }
 
+   /**
+    * Korzystajac z geocodera znajduje na mapie miejsce dane w polu tekstowym.
+    */
    private void findPlace()
    {
       geocoder.getLatLng("wrocław" + addressSearch.getText(),
@@ -276,6 +314,10 @@ public class Client implements EntryPoint
             });
    }
 
+   /**
+    * Znajduje wszystkie przystanki w ktorych nazwach jest ciag znakow z pola
+    * tekstowego.
+    */
    private void findStop()
    {
       for (GttMarker m : currentStops)
@@ -299,7 +341,7 @@ public class Client implements EntryPoint
 
                public void onSuccess(ArrayList<Integer> result)
                {
-                  ArrayList<GttMarker> markers = new ArrayList<GttMarker>();
+                  final ArrayList<GttMarker> markers = new ArrayList<GttMarker>();
                   double lat = 0;
                   double lng = 0;
                   for (int i = 0; i < result.size(); i++)
@@ -329,6 +371,9 @@ public class Client implements EntryPoint
             });
    }
 
+   /**
+    * Pokazuje na mapie wszystkie przystanki danej linii przy danym wariancie.
+    */
    private void showLine()
    {
       for (GttMarker m : currentStops)
@@ -393,6 +438,14 @@ public class Client implements EntryPoint
       });
    }
 
+   /**
+    * Zbiera dane potrzebne do wyswietlenia okienka z rozkladem dla danej linii
+    * i danego przystanku.
+    *
+    * @param stationId
+    * @param stationName
+    * @param lineName
+    */
    private void showTimetable(Integer stationId, String stationName,
          String lineName)
    {
@@ -485,6 +538,11 @@ public class Client implements EntryPoint
       });
    }
 
+   /**
+    * Buduje i wyswietla rozklad odjazdow danej linii z danego przystanku.
+    *
+    * @param data
+    */
    private void createTimetableWindow(TimetableData data)
    {
       final FlexTable timetable = new FlexTable();
@@ -596,9 +654,14 @@ public class Client implements EntryPoint
       timetableWindow.center();
    }
 
+   /**
+    * Zwraca zwykly marker opisujacy dany punkt.
+    *
+    * @param point
+    * @return
+    */
    private GttMarker getSpotMarker(LatLng point)
    {
-      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       options.setDraggable(true);
       Icon icon = Icon
@@ -759,6 +822,13 @@ public class Client implements EntryPoint
       return marker;
    }
 
+   /**
+    * Zwraca marker opisujacy dany przystanek.
+    *
+    * @param stopId
+    * @param point
+    * @return
+    */
    private GttMarker getStopMarker(Integer stopId, LatLng point)
    {
       if (stopsIds.size() == 0)
@@ -766,7 +836,6 @@ public class Client implements EntryPoint
          return null;
       }
       final Integer przyst_id = stopId;
-      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://labs.google.com/ridefinder/images/mm_20_blue.png");
@@ -924,9 +993,15 @@ public class Client implements EntryPoint
       return marker;
    }
 
+   /**
+    * Zwraca marker oznaczajacy punkt poczatkowy trasy.
+    *
+    * @param place
+    * @param point
+    * @return
+    */
    private GttMarker getStartMarker(String place, LatLng point)
    {
-      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-start.png");
@@ -953,7 +1028,7 @@ public class Client implements EntryPoint
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
             startSpot = null;
-            start.setHTML("");
+            start.setHTML(".....................................");
             if (stopsCoords.contains(point) == false)
             {
                map.addOverlay(getSpotMarker(point));
@@ -987,7 +1062,7 @@ public class Client implements EntryPoint
             public void onClick(Widget sender)
             {
                startSpot = null;
-               start.setHTML("");
+               start.setHTML(".....................................");
                map.removeOverlay(marker);
             }
          });
@@ -1009,9 +1084,15 @@ public class Client implements EntryPoint
       return marker;
    }
 
+   /**
+    * Zwraca marker oznaczajacy punkt koncowy trasy.
+    *
+    * @param place
+    * @param point
+    * @return
+    */
    private GttMarker getEndMarker(String place, LatLng point)
    {
-      map.setCenter(point);
       MarkerOptions options = MarkerOptions.newInstance();
       Icon icon = Icon
             .newInstance("http://www.google.com/intl/en_ALL/mapfiles/dd-end.png");
@@ -1038,7 +1119,7 @@ public class Client implements EntryPoint
             LatLng point = marker.getLatLng();
             map.removeOverlay(marker);
             endSpot = null;
-            end.setHTML("");
+            end.setHTML(".....................................");
             if (stopsCoords.contains(point) == false)
             {
                map.addOverlay(getSpotMarker(point));
@@ -1072,7 +1153,7 @@ public class Client implements EntryPoint
             public void onClick(Widget sender)
             {
                endSpot = null;
-               end.setHTML("");
+               end.setHTML(".....................................");
                map.removeOverlay(marker);
             }
          });
@@ -1094,6 +1175,9 @@ public class Client implements EntryPoint
       return marker;
    }
 
+   /**
+    * Konstruktor klasy. Tworzy wszystkie pola i dodaje do nich funkcjonalnosci.
+    */
    public Client()
    {
       geocoder = new Geocoder();
@@ -1153,6 +1237,30 @@ public class Client implements EntryPoint
             }
          }
       });
+      lineSearch.addChangeListener(new ChangeListener()
+      {
+         public void onChange(Widget sender)
+         {
+            variantList.clear();
+            service.getVersions(lineSearch.getText(),
+                  new AsyncCallback<ArrayList<String>>()
+                  {
+                     public void onFailure(Throwable caught)
+                     {
+                        Window.alert("Failed to fetch variants. "
+                              + caught.getMessage());
+                     }
+
+                     public void onSuccess(ArrayList<String> result)
+                     {
+                        for (int i = 0; i < result.size(); i++)
+                        {
+                           variantList.addItem(result.get(i));
+                        }
+                     }
+                  });
+         }
+      });
       lineSubmit = new Button("Pokaż");
       lineSubmit.addClickListener(new ClickListener()
       {
@@ -1174,7 +1282,7 @@ public class Client implements EntryPoint
             }
          }
       });
-      addressSubmit = new Image("gfx/loup.jpg");
+      addressSubmit = new Button("Szukaj");
       addressSubmit.setPixelSize(22, 19);
       addressSubmit.addClickListener(new ClickListener()
       {
@@ -1192,20 +1300,15 @@ public class Client implements EntryPoint
             map.addOverlay(marker);
             info = map.getInfoWindow();
             info.open(marker, marker.getContent());
-            addSpotButton.setDown(false);
             map.removeMapClickHandler(addSpotHandler);
          }
       };
-      addSpotButton = new ToggleButton(new Image(
-            "http://labs.google.com/ridefinder/images/mm_20_red.png"));
+      addSpotButton = new Image("gfx/loup.jpg");
       addSpotButton.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
          {
-            if (addSpotButton.isDown())
-               map.addMapClickHandler(addSpotHandler);
-            else
-               map.removeMapClickHandler(addSpotHandler);
+            map.addMapClickHandler(addSpotHandler);
          }
       });
 
@@ -1216,8 +1319,7 @@ public class Client implements EntryPoint
       nocne = new CheckBox("nocne", true);
       nocne.setChecked(false);
 
-      startIcon = new Image(
-            "http://www.google.com/intl/en_ALL/mapfiles/dd-start.png");
+      startIcon = new Image("gfx/start.png");
       startIcon.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
@@ -1228,8 +1330,7 @@ public class Client implements EntryPoint
             }
          }
       });
-      endIcon = new Image(
-            "http://www.google.com/intl/en_ALL/mapfiles/dd-end.png");
+      endIcon = new Image("gfx/end.png");
       endIcon.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
@@ -1242,12 +1343,62 @@ public class Client implements EntryPoint
       });
       start = new HTML();
       end = new HTML();
+      change = new Image("gfx/powrotna.png");
+      change.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            if (startSpot != null)
+            {
+               if (endSpot != null)
+               {
+                  GttMarker temp = startSpot;
+                  String tempName = start.getHTML();
+                  map.removeOverlay(startSpot);
+                  map.addOverlay(getStartMarker(end.getHTML(), endSpot
+                        .getLatLng()));
+                  map.removeOverlay(endSpot);
+                  map.addOverlay(getEndMarker(tempName, temp.getLatLng()));
+               }
+               else
+               {
+                  map.addOverlay(getEndMarker(start.getHTML(), startSpot
+                        .getLatLng()));
+                  map.removeOverlay(startSpot);
+                  startSpot = null;
+                  start.setHTML("................................");
+               }
+            }
+            else if (endSpot != null)
+            {
+               map
+                     .addOverlay(getStartMarker(end.getHTML(), endSpot
+                           .getLatLng()));
+               map.removeOverlay(endSpot);
+               endSpot = null;
+               end.setHTML("................................");
+            }
+            else
+            {
+               ;
+            }
+         }
+      });
       findCourseButton = new Button("Znajdź trasę");
       findCourseButton.addClickListener(new ClickListener()
       {
          public void onClick(Widget sender)
          {
             findCourse();
+         }
+      });
+
+      update = new Button("update");
+      update.addClickListener(new ClickListener()
+      {
+         public void onClick(Widget sender)
+         {
+            service.update(null);
          }
       });
 
@@ -1301,6 +1452,10 @@ public class Client implements EntryPoint
       });
    }
 
+   /**
+    * Funkcja uruchamiana przy starcie strony. Odpowiedzialna za wyglad i
+    * rozmieszczenie wszystkick widgetow.
+    */
    public void onModuleLoad()
    {
       VerticalPanel mainPanel = new VerticalPanel();
@@ -1308,55 +1463,60 @@ public class Client implements EntryPoint
       final AbsolutePanel center = new AbsolutePanel();
 
       Image background = new Image();
-      background.setUrl("gfx/main_1024.jpg");
+      background.setUrl("gfx/tlo.jpg");
       center.add(background);
 
-      map.setSize("638px", "437px");
-      center.add(map, 337, 190);
+      map.setSize("701px", "407px");
+      center.add(map, 270, 144);
 
-      center.add(new HTML("znajdź adres:"), 48, 204);
-      addressSearch.setVisibleLength(20);
-      center.add(addressSearch, 138, 202);
-      center.add(addressSubmit, 297, 202);
+      addressSearch.setWidth("140px");
+      center.add(addressSearch, 35, 172);
+      addressSubmit.setPixelSize(57, 19);
+      addressSubmit.addStyleDependentName("station");
+      center.add(addressSubmit, 180, 172);
+      center.add(addSpotButton, 241, 172);
 
-      center.add(new HTML("lub wskaż miejsce na mapie:"), 48, 234);
-      center.add(addSpotButton, 296, 225);
+      center.add(normalne, 47, 253);
+      center.add(pospieszne, 47, 268);
+      center.add(nocne, 47, 283);
 
-      center.add(normalne, 52, 268);
-      center.add(pospieszne, 52, 283);
-      center.add(nocne, 52, 298);
+      center.add(new HTML("skąd:"), 35, 204);
+      center.add(startIcon, 82, 202);
+      start.setHTML("................................");
+      center.add(start, 108, 204);
+      center.add(new HTML("dokąd:"), 35, 227);
+      center.add(endIcon, 82, 225);
+      end.setHTML("................................");
+      center.add(end, 108, 227);
+      center.add(change, 241, 214);
 
-      center.add(startIcon, 152, 257);
-      center.add(start, 180, 265);
-      center.add(endIcon, 152, 297);
-      center.add(end, 180, 305);
-
-      center.add(findCourseButton, 224, 340);
+      center.add(findCourseButton, 151, 265);
 
       ScrollPanel scroll = new ScrollPanel();
-      scroll.setSize("267px", "380px");
+      scroll.setSize("195px", "325px");
       scroll.setWidget(sidePanel);
-      for (int i = 0; i < 50; i++)
-      {
-         sidePanel.add(new Label("A"));
-      }
-      center.add(scroll, 56, 383);
+      center.add(scroll, 54, 330);
 
-      center.add(new HTML("wyszukaj przystanek:"), 383, 670);
-      stopSearch.setVisibleLength(20);
-      center.add(stopSearch, 529, 668);
+      center.add(new HTML("wyszukaj przystanek:"), 313, 600);
+      stopSearch.setWidth("190px");
+      center.add(stopSearch, 459, 598);
       stopSubmit.setPixelSize(57, 19);
       stopSubmit.addStyleDependentName("station");
-      center.add(stopSubmit, 699, 668);
+      center.add(stopSubmit, 659, 598);
 
-      center.add(new HTML("dostępne linie:"), 383, 700);
+      center.add(new HTML("dostępne linie:"), 313, 630);
       lineSearch.setLimit(4);
-      center.add(lineSearch, 529, 698);
+      lineSearch.setWidth("40px");
+      center.add(lineSearch, 459, 628);
+      variantList.setWidth("140px");
+      center.add(variantList, 509, 628);
       lineSubmit.setPixelSize(57, 19);
       lineSubmit.addStyleDependentName("station");
-      center.add(lineSubmit, 699, 698);
-      variantList.setWidth("140px");
-      center.add(variantList, 529, 728);
+      center.add(lineSubmit, 659, 628);
+
+      update.setPixelSize(57, 19);
+      update.addStyleDependentName("station");
+      center.add(update, 900, 628);
 
       mainPanel.add(center);
 

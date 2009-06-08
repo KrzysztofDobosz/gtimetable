@@ -3,13 +3,15 @@ package org.wroc.pwr.gtt.client;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
-import org.wroc.pwr.gtt.server.Coordinates;
-
-import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
+/**
+ * Interfejs do komunikacji z serwerem.
+ *
+ * @author Krzysztof Dobosz
+ *
+ */
 public interface GttServiceAsync
 {
    public void update(AsyncCallback<?> callback);
@@ -57,4 +59,5 @@ public interface GttServiceAsync
    public void findCourse(boolean normal,
          boolean fast, boolean night, double xLat, double xLng, double yLat,
          double yLng, int amount, int cx, int cy, AsyncCallback<ArrayList<ArrayList<ArrayList<Integer>>>> callback);
+
 }

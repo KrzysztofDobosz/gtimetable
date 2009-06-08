@@ -94,7 +94,7 @@ dr inż. Ziemowit \textsc{Nowak}
 
 
 W miastach takich jaki Wrocław komunikacja miejska jest często najszybszą formą
-transportu. Dla tych, którzy są w danym mieście przejazdem, w odpwiedzinach --
+transportu. Dla tych, którzy są w danym mieście przejazdem, w odwiedzinach --
 często też jedyną. Problemem może jednak okazać się wówczas nie sama prędkość
 autobusów czy tramwajów, ale czas jaki trzeba poświęcić na odnalezienie odpowiedniej linii, połączenia.
 
@@ -140,7 +140,7 @@ rozkładów jazdy komunikacji miejskiej we Wrocławiu z systemem map serwisu
   \item (\ldots)
 \end{enumerate}
 \section{Analiza dostępnych danych wejściowych systemu}
-W systemi itegrującym ogólnodostępne dane konieczne jest zdefiniowanie i
+W systemie itegrującym ogólnodostępne dane konieczne jest zdefiniowanie i
 odpowiednie przetwarzanie danych źródłowych. Wśród źródeł wymienić należy:
 \begin{itemize}
   \item rozkład jazdy komunikacji miejskiej MPK Wrocław
@@ -215,8 +215,18 @@ dowolnie łączyć ze sobą:
 
 \section{Stosowane rozwiązania technologiczne}
 \textbf{GTT \emph{GoogleMapsTimetable}} został napisany przy pomocy frameworka
-GWT\footnote{http://code.google.com/intl/pl/webtoolkit/}. //DOPISZ TUTAJ JAKIEŚ
-MĄDRE ZDANIA O NIM
+GWT\footnote{http://code.google.com/intl/pl/webtoolkit/}. GWT oferuje możliwość
+tworzenia serwisów javascriptowych bez konieczności pisania w tym uciążliwym
+dla wielu programistów języku. Kod napisany w GWT bardzo przypomina kod w javie,
+przez co cały framework można określic jako język java okrojony tak, żeby dało się
+go skompilować do javascriptu.
+
+Oprócz prostego tworzenia interfejsów użytkownika
+GWT oferuje system komunikacji z częścią serwerową (napisaną w języku java) oparty
+o RPC (Remote Procedure Call), będący w rzeczywistości tylko swego rodzaju warstwą
+abstrakcji nad popularną komunikacją servletową. System ten charakteryzuje się tym,
+że udostępnia komunikację asynchroniczną, aplikacja kliencka nie czeka na odpowiedź
+z serwera, tylko wykonuje odpowiedni kod kiedy już ją dostanie.
 
 Część serwerowa wykorzystuje również poza bibliotekami standardowymi:
 \begin{itemize}
@@ -344,9 +354,55 @@ odległości przystankowej (sumie liczby przejechanych przystanków).
  temat którego więcej informacji w sekcji Stosowanych rozwiązań technologicznych.
 
 \subsection{Część kliencka}
+ Moduły funkcjonalne jakie można wyróżnić w aplikacji klienckiej to:
+\begin{itemize}
+\item część wizualna interfejsu
+\item część funkcjonalna interfejsu
+\item interfejsy komunikacji z serwerem
+\end{itemize}
+
+\subsubsection{GUI}
+Graficzny interfejs użytkownika jest w wysokim stopniu intuicyjny. Opiera się
+głównie na klasie \emph{GWT} AbsolutePanel, dzięki której tworzenie interfejsu przypomina
+układanie warstw, podobnie jak w języku \emph{HTML}. Największym widgetem jaki użytkownik
+widzi na stronie jest oczywiście mapa, której wygląd zależy w dużej mierze od tego
+co udostępniła firma \emph{Google} w swoim API do \emph{GWT}. Pola tekstowe, przyciski, itp.
+zostały umieszczone w stronie na stałe, tzn. nie przesuwają się przy zmianie
+rozmiaru strony. Większość z ich to obiekty klas udostępnionych przez framework,
+własnym wkładem natomiast są wszelkie obrazki i ikonki (także tło). Także ikonki
+markerów na mapie są pobierane ze strony \emph{GoogleMaps}. Więcej o interfejsie
+w Podręczniku Użytkownika. Cała graficzna część interfejsu użytkownika znajduje się
+w klasie Client.java.
+
+\subsection{Funkcjonalność interfejsu}
+Oprócz oczywistej funkcjonalności, takiej jak odczytywanie ciągów znaków z
+odpowiednich pól, czy obsługiwanie zdarzeń takich jak wciśnięcie przycisku,
+najbardziej istotne funkcje spełniają markery nanoszone na mapę. To z ich
+pomocą użytkownik decyduje o punktach początkowych i końcowych trasy, także
+to one reprezentują znalezione przystanki. System obsługujący markery jest
+dość skomplikowany, musi reagować odpowiednio na zmianę punktu początkowego
+trasy, dodawać i usuwać w markery w odpowiednim czasie. W celu lepszego
+przypisania dymków, które zawierają linki do wszystkich funkji ,do markerów,
+stworzono klasę GttMarker dziedziczącą po klasie Marker. Zaszła również
+konieczność stworzenia kontenera na dane potrzebne do prawidłowego pokazania
+rozkładu odjazdów danej linii z danego przystanku, ponieważ mimo asynchronicznej
+komunikacji do wyświetlenia rozkładu potrzebne są wszystkie dane. Moduł
+funkcjonalności obejmuje klasy Client.java, TimetableData.java oraz GttMarker.java.
+
+\subsection{Interfejsy komunikacji z serwerem}
+System komunikacji oparty o RPC wymaga od developera stworzenia dwóch interfejsów
+dla każdej usługi - jeden synchroniczny, drugi asynchroniczny. Komunikacja
+odbywa się przez drugi interfejs. Po stronie serwera musi istnieć skompilowana
+klasa implementująca synchroniczny interfejs.
 
 \subsection{Model obiektowy systemu}
+Oczywiście ogólnie system stworzony został w oparciu o paradygmat obiektowości.
+Część serwerowa została napisana w języku java, a część kliencka we frameworku GWT,
+które to języki programowani są językami czysto obiektowymi. 
+
 \subsubsection{Diagram klas}
+
+Diagram klas przedstawia rysunek \ref{diagram_klas}.
 
  \begin{figure}[htp]
 \centering
@@ -407,7 +463,7 @@ kolejność funkcjonalna tworzenia klas i realizacji modułów funkcjonalnych:
   Pozyskane z portalu Urzędy Miasta we Wrocławiu pliki XML zawierające rozkłady
   jazdy dla poszczególnych linii wydawały się początkowo dobrze zorganizowane i
   spójne. Schemat XML oraz wyobrażenie funkcjonowania systemu pozwoliły w dość
-  jasny sposób zbudować strukturę bazy danych, która nie uległa większym zmianą
+  jasny sposób zbudować strukturę bazy danych, która nie uległa większym zmianom
   aż do uzyskania funkcjonującej wersji aplikacji oraz przygotować parser w
   celu wypełnienia danych. Problemy pojawiły się jednak przy próbnych
   ładowaniach. Występowały niespójności nie tyle na poziomie schematu co samych
@@ -523,10 +579,55 @@ kolejność funkcjonalna tworzenia klas i realizacji modułów funkcjonalnych:
   głównej mierze na kombinacji struktur wbudowanych -- list i tablic
   hashujących. 
 
+\section{Raport z realizacji części klienckiej}
+Aplikacja kliencka powstawała w środowisku programistycznym Eclipse z dodatkiem
+do obsługi projektów \emph{GWT} - Cypal Studio. Jako, że część developerów była
+już zaznajomiona z frameworkiem \emph{GWT}, prace nad częścią kliencką rozpoczęły
+się od importu i aplikacji do programu modułu \emph{GoogleMaps}. \emph{GWT} pozwala
+na uruchamianie projektów w specjalnie przygotowanym do tego środowisku: wbudowanym
+serwerze \emph{Tomcat} i prostej przeglądarce obsługującej javascript. Mimo to
+doświadczenie podpowiadało, żeby przygotować skryptu kompilujące i uruchamiające
+aplikację na zewnętrznym serwerze, ponieważ istnieją pewnie niezgodności między tym
+co widzi developer na wbudowanej przeglądarce, a tym co widzi użytkownik po
+uruchomieniu aplikacji w docelowym środowisku.
 
-\section{Raport z realizacji  części klienckiej} 
+\subsection{System Markerów}
+Po zaznajomieniu się z API do \emph{GoogleMaps} powstał pomysł, żeby dużą część
+funkcjonalności serwisu oprzeć na Markerach. Omawiane API dysponuje dosyć dużą
+liczbą czynności jakie można robić z Markerami, jednak nie ma tego co okazało się
+bardzo potrzebne: przypisania Markerowi zawartości dymka który pokazuje sie po
+kliknięciu na dany Marker. Tak powstała klasa GttMarker dziedzicząca po Markerze
+z \emph{GWT}. Funkcjonalność Markerów zawiera m. in. odczyt współrzędnych
+geograficznych z każdego punktu na mapie, oznaczenia Markerów jako początku lub
+końca trasy, reprezentacja przystanków razem z liniami odwiedzającymi go, oraz
+wyświetlaniem rozkładu jazdy itd.
+
+\subsection{Prezentacja wyników}
+Kolejną rozbudowaną częścią funkcjonalności jest prezentacja wyników wyszukiwania.
+\textbf{GTT \emph{GoogleMapsTimetable}} pozwala na wyszukiwanie:
+\begin{itemize}
+\item przystanków o danej nazwie
+\item wszystkich przystanków na trasie jednej, danej linii
+\item połączeń między dwoma dowolnymi punktami w mieście
+\end{itemize}
+W pierwszym oraz drugim przypadku wyniki pokazują się w prostej liście na panelu bocznym.
+Prezentacja wyników różnych tras na raz jakkolwiek okazała się nie być rzecza prostą.
+Konieczne było przebudowanie sposobu wyświetlania wyników. Wcześniej przystanki dodawane
+były do panelu bocznego w funkcji getStopMarker(), czyli podczas wyświetlania ich na mapie.
+Podczas przebudowywania powstała funkcja getRoutePanel(), która tworzy pionową listę
+z nazwami przystanków, a programista sam może zadecydować, czy po prostu pokazać tą listę
+(dwa pierwsze przypadki), czy dodać ją do większej listy, uwzględniającej różne trasy
+(trzeci przypadek).
 
 \section{Podręcznik administratora}
+Portal \textbf{GTT \emph{GoogleMapsTimetable}} stworzony został z myślą o tym,
+że będzie on uruchamiany na serwerach typu \emph{Apache-Tomcat}. Do uruchomienia
+aplikacji na domyślnych ustawieniach serwera wystarczy zamiania ścieżek do
+folderu serwera, oraz do folderu z plikami jar \emph{GWT} oraz modułu \emph{GoogleMaps}
+do \emph{GWT} w pliku \texttt{exports.sh}, oraz uruchomieniu skryptu budującego i
+uruchamiającego całą aplikację \texttt{build.sh}. Skryptu zostały przygotowane
+dla środowiska Linux.
+
 \section{Podręcznik użytkownika}
 
  \textbf{GTT \emph{GoogleMapsTimetable}} jest webową aplikacją stanowiącą

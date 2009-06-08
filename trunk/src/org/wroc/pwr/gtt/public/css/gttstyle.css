@@ -1,5 +1,6 @@
 body {
  margin: 0 auto 0 auto;
+ font-size: 10px;
  padding: 0;
  width: 1024px;
 }
@@ -22,4 +23,12 @@ body {
 .gwt-FlexTable td {
   border: 1px solid #BBBBBB;
   padding: 3px;
+}
+.gwt-DisclosurePanel .header,
+.gwt-DisclosurePanel .header a,
+.gwt-DisclosurePanel .header td {
+  text-decoration: none;  /* Remove underline from header */
+  color: black;
+  cursor: pointer;
+  cursor: hand;
 }

@@ -3,6 +3,13 @@ package org.wroc.pwr.gtt.client;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Klasa sluzaca jako kontener dla danych potrzebnych do wyswietlenia rozkladu
+ * danej linii dla danego przystanku.
+ *
+ * @author Krzysztof Dobosz
+ *
+ */
 public class TimetableData
 {
    private String lineName;

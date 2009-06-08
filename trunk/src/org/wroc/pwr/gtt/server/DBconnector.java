@@ -32,9 +32,9 @@ import org.wroc.pwr.gtt.server.graphcreator.WEdge;
  * Klasa odpowiedzialna za calosciowe polaczenia z baza danych - od nawiazania
  * polaczenia, poprzez wypelnianie bazy po wszelki dostep do samych danych;
  * implementacja modulu zarzadania baza
- * 
+ *
  * @author Michal Brzezinski-Spiczak
- * 
+ *
  */
 public class DBconnector {
 	Connection conn = null;
@@ -49,7 +49,7 @@ public class DBconnector {
 	/**
 	 * Konstruktor DBconnector przyjmujacy parametry polaczenia JDBC i
 	 * nawiazujacy polaczenie z baza
-	 * 
+	 *
 	 * @param driver
 	 * @param host
 	 * @param dbName
@@ -76,7 +76,7 @@ public class DBconnector {
 	/**
 	 * Metoda aktualizujaca-wypelniajaca baze danych na podstawie plikow XML z
 	 * rozkladami
-	 * 
+	 *
 	 * @param fileList
 	 *            - lista lokalizacji plikow xml
 	 */
@@ -84,7 +84,7 @@ public class DBconnector {
 	public void updateDB(ArrayList<String> fileList, String tramCo, String busCo) {
 
 		try {
-			String[] createStatement = readFileAsString("create.sql").split(
+			String[] createStatement = readFileAsString(System.getenv("TOMCAT_HOME") + "/webapps/gtt/" + "create.sql").split(
 					"\\n");
 			Statement stmt = conn.createStatement();
 			for (int i = 0; i < createStatement.length; i++) {
@@ -155,7 +155,7 @@ public class DBconnector {
 	/**
 	 * Metoda zczytujaca wspolrzedne geograficzne przypisane do przystankow z
 	 * pliku csv
-	 * 
+	 *
 	 * @param fileName
 	 * @return
 	 */
@@ -207,7 +207,7 @@ public class DBconnector {
 	 * night okreslaja rodzaje polaczen; amount - liczba pol. do wyszukania
 	 * miedzy kazdymi dwoma przystankami sposrod cx najblizszych poczatkowemu i
 	 * cy koncowemu
-	 * 
+	 *
 	 * @param typ
 	 * @param p1
 	 * @param p2
@@ -242,7 +242,7 @@ public class DBconnector {
 
 	/**
 	 * Metoda wczytujaca strukture grafu z bazy danych
-	 * 
+	 *
 	 * @return
 	 */
 	public GttGraph loadGraph(boolean normal, boolean fast, boolean night) {
@@ -305,7 +305,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca nazwe przystanku o zadanym id
-	 * 
+	 *
 	 * @param stop_id
 	 * @return
 	 */
@@ -328,7 +328,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca nazwe lini o zadanym id
-	 * 
+	 *
 	 * @param line_id
 	 * @return
 	 */
@@ -351,7 +351,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca jeden, losowy id przystanku o zadanej nazwie
-	 * 
+	 *
 	 * @param stop_name
 	 * @return
 	 */
@@ -373,7 +373,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id przystankow o zadanej nazwie
-	 * 
+	 *
 	 * @param stop_name
 	 * @return
 	 */
@@ -395,7 +395,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id linii o zadanej nazwie (wariant 1)
-	 * 
+	 *
 	 * @param line_name
 	 * @return
 	 */
@@ -417,7 +417,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id lini o zadanej nazwie i wariancie
-	 * 
+	 *
 	 * @param line_name
 	 * @return
 	 */
@@ -441,7 +441,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca liste id przystankw w kolejnoci pokonywania na zadanej po id lini
-	 * 
+	 *
 	 * @param line_id
 	 * @return
 	 */
@@ -467,7 +467,7 @@ public class DBconnector {
 	/**
 	 * zwraca liste nazw przystankow w kolejnosci pokonywania na lini zadanej po
 	 * nazwie i jednym z przystankow
-	 * 
+	 *
 	 * @param line_id
 	 * @return
 	 */
@@ -494,7 +494,7 @@ public class DBconnector {
 	/**
 	 * zwraca rozk�ad danej lini z zadanego przystanku - struktura tablicy
 	 * hashuj�cej dzien_name->lista<czas>
-	 * 
+	 *
 	 * @param stop_id
 	 * @param line_name
 	 * @return
@@ -526,7 +526,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca nazwy linii z podzialem na typu hashmapa typ_id-> lista nazw
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<Integer, ArrayList<String>> getLines() {
@@ -552,7 +552,7 @@ public class DBconnector {
 
 	/**
 	 * Zwraca hashmape dzien_id-> dzien_name wzgledem listy dzien_id
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<Integer, String> getDayNames(ArrayList<Integer> day_ids) {
@@ -579,7 +579,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca nazwe typu wzgledem id
-	 * 
+	 *
 	 * @param type_id
 	 * @return
 	 */
@@ -604,7 +604,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca nazwe typu wzgledem nazwy linii
-	 * 
+	 *
 	 * @param line_id
 	 * @return
 	 */
@@ -627,7 +627,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca nazwe wariantu wzgledem id lini
-	 * 
+	 *
 	 * @param line_name
 	 * @return
 	 */
@@ -652,7 +652,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca liste wariantow danej linii wzgledem nazwy
-	 * 
+	 *
 	 * @param line_name
 	 * @return
 	 */
@@ -677,7 +677,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca wsporzedne przystanku wzgledem id
-	 * 
+	 *
 	 * @param stop_id
 	 * @return
 	 */
@@ -702,7 +702,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca id i wsperzedne wszystkich przystankow
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<Integer, ArrayList<Double>> getAllCoordinates() {
@@ -727,7 +727,7 @@ public class DBconnector {
 	/**
 	 * zwraca najbizszy zadanemu czasowi (start) wyjazd danej linii (linia_id) z
 	 * zadanego przystanku (przyst_id) w zadanyc dzien (dzien_id(
-	 * 
+	 *
 	 * @param stop_id
 	 * @param line_id
 	 * @param dzien_id
@@ -760,7 +760,7 @@ public class DBconnector {
 	/**
 	 * zwraca mozliwe przesiadki (lista id lini) z zadanego przystanku lub
 	 * przystank�w o tej samej nazwie (tzn. w najbli�szej okolicy)
-	 * 
+	 *
 	 * @param stop_id
 	 * @return
 	 */
@@ -786,7 +786,7 @@ public class DBconnector {
 
 	/**
 	 * zwraca nazwy linii jadacych przez zadany przystanek
-	 * 
+	 *
 	 * @param stop_id
 	 * @return
 	 */

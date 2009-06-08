@@ -20,7 +20,7 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    static String dbName = "gtt";
    static String driver = "com.mysql.jdbc.Driver";
    static String userName = "root";
-   static String pasword = "password";
+   static String pasword = "8pv2y2n8";
    static String tramCoFile = "tram.txt";
    static String busCoFile = "bus.txt";
    static DBconnector connector = new DBconnector(driver, dbhost, dbName,
@@ -129,7 +129,9 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
       ArrayList<String> xmlFiles;
       TTdownloader.download(url, archName);
       xmlFiles = TTdownloader.unzip(archName, dir);
-      connector.updateDB(xmlFiles, tramCoFile, busCoFile);
+      connector.updateDB(xmlFiles, System.getenv("TOMCAT_HOME")
+            + "/webapps/gtt/" + tramCoFile, System.getenv("TOMCAT_HOME")
+            + "/webapps/gtt/" + busCoFile);
    }
 
    public ArrayList<ArrayList<ArrayList<Integer>>> findCourse(boolean normal,
