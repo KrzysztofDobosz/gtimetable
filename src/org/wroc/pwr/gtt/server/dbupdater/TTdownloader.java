@@ -17,17 +17,25 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-
 import com.sun.jmx.snmp.Timestamp;
+
 /**
  * Klasa stanowiaca downloader oraz unzipper do archiwum rozkladow
+ * 
  * @author Michal Brzezinski-Spiczak
- *
+ * 
  */
 public class TTdownloader {
 
 	final static int size = 1024;
 
+	/**
+	 * Metoda pobierajaca z zadanej lokalizacji (fAddress) plik i zapisujaca go
+	 * na dysku lokalnym w sciezce localFileName
+	 * 
+	 * @param fAddress -- adres zrodla
+	 * @param localFileName -- adres do zapisu pliku na dysku lokalnym
+	 */
 	public static void download(String fAddress, String localFileName) {
 		OutputStream outStream = null;
 		URLConnection uCon = null;
@@ -39,17 +47,16 @@ public class TTdownloader {
 			int ByteRead, ByteWritten = 0;
 			Url = new URL(fAddress);
 
-
 			outStream = new BufferedOutputStream(new FileOutputStream(
-					 localFileName));
+					localFileName));
 
 			uCon = Url.openConnection();
-			 DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
-		      DateFormat df2 = DateFormat.getTimeInstance(DateFormat.SHORT);
-		      String s1 = df1.format(new Date(uCon.getLastModified()));
+			DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.MEDIUM,
+					DateFormat.MEDIUM);
+			DateFormat df2 = DateFormat.getTimeInstance(DateFormat.SHORT);
+			String s1 = df1.format(new Date(uCon.getLastModified()));
 
 			System.out.println("Pobierany rozklad z dnia: " + s1);
-
 
 			is = uCon.getInputStream();
 			buf = new byte[size];
@@ -71,7 +78,12 @@ public class TTdownloader {
 			}
 		}
 	}
-
+/**
+ * Metoda sluzaca do wypakowania archwium do zadanego katalogu, zwraca liste nazw wypakowanych plikow.
+ * @param file -- archiwum do wypakowania
+ * @param dir -- katalog, w ktorym nalezy wypakowac archiwum
+ * @return
+ */
 	public static ArrayList<String> unzip(String file, String dir) {
 		Enumeration entries;
 		ZipFile zipFile;
@@ -96,19 +108,20 @@ public class TTdownloader {
 				}
 
 				System.err.println("Extracting file: " + entry.getName());
-				if (!entry.getName().contains("Kopia")){
-				String[] nameTab = entry
-				.getName().split("/");
-				String name = nameTab[nameTab.length-1];
+				if (!entry.getName().contains("Kopia")) {
+					String[] nameTab = entry.getName().split("/");
+					String name = nameTab[nameTab.length - 1];
 
-				copyInputStream(zipFile.getInputStream(entry),
-						new BufferedOutputStream(new FileOutputStream(dir + "\\" + name)));
-				fileNames.add(dir+"\\" + name);}
+					copyInputStream(zipFile.getInputStream(entry),
+							new BufferedOutputStream(new FileOutputStream(dir
+									+ "\\" + name)));
+					fileNames.add(dir + "\\" + name);
+				}
 			}
 
 			zipFile.close();
-//			File del = new File(file);
-//			del.delete();
+			// File del = new File(file);
+			// del.delete();
 		} catch (IOException ioe) {
 			System.err.println("Unhandled exception:");
 			ioe.printStackTrace();
@@ -117,7 +130,7 @@ public class TTdownloader {
 		return fileNames;
 	}
 
-	public static final void copyInputStream(InputStream in, OutputStream out)
+	private static final void copyInputStream(InputStream in, OutputStream out)
 			throws IOException {
 		byte[] buffer = new byte[1024];
 		int len;

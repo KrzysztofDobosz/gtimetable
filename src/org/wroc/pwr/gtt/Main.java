@@ -9,10 +9,10 @@ import org.wroc.pwr.gtt.server.graphcreator.Leg;
 import org.wroc.pwr.gtt.server.graphcreator.Route;
 
 /**
- * Aktualny, testowy, konsolowy main pokazuj�cy co i jak na razie dzia�a albo i
- * nie dzia�a...
+ * Aktualny, testowy, konsolowy main pokazujacy co i jak na razie dziala albo i
+ * nie dziala...
  * 
- * @author Micha� Brzezi�ski-Spiczak
+ * @author Michal Brzezinski-Spiczak
  * 
  */
 public class Main {
@@ -30,14 +30,16 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		// update();
+		 //update();
 
 		DBconnector connector = new DBconnector(driver, dbhost, dbName,
 				userName, pasword); // nawi�zanie po��czenia z baz�
-		// System.out.println(connector.getStopName(15));
+		System.out.println(connector.getStopName(747));
+		System.out.println(connector.getStopName(124));
+		//System.out.println(connector.getStopIds("Eureka"));
 		// System.out.println(connector.getLinesViaStop(15));
-		// System.out.println(connector.distance(connector.getCoordinates(91),
-		// connector.getCoordinates(91)));
+		System.out.println(connector.distance(connector.getCoordinates(747),
+		 connector.getCoordinates(124)));
 		// System.out.println(connector.distance(connector.getCoordinates(91),
 		// connector.getCoordinates(257)));
 		// System.out.println(connector.distance(connector.getCoordinates(91),
@@ -45,13 +47,13 @@ public class Main {
 		// System.out.println(connector.getNearestStops(connector.getCoordinates(91),2));
 		// connector.updateGraph();
 		// System.out.println(connector.getLineRoute(7));
-		System.out.println(connector.getNearestStops(connector.getCoordinates(54),5));
-		System.out.println(connector.getNearestStops(connector.getCoordinates(56),5));
-		ArrayList<Route> result = connector.findCourse(true, false, false,
-				connector.getCoordinates(63), connector.getCoordinates(360), 10,
-				1, 1);
-		for (Route r : result)
-			System.out.println(r);
+	//	System.out.println(connector.getNearestStops(connector.getCoordinates(54),5));
+		//System.out.println(connector.getNearestStops(connector.getCoordinates(56),5));
+		//ArrayList<Route> result = connector.findCourse(true, false, false,
+		//		connector.getCoordinates(63), connector.getCoordinates(360), 10,
+		//		1, 1);
+	//	for (Route r : result)
+	//		System.out.println(r);
 		
 		
 		//System.out.println(connector.findCourse(true, false, false, 55, 58, 10));

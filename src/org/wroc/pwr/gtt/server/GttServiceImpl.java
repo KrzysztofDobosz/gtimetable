@@ -23,7 +23,7 @@ public class GttServiceImpl extends RemoteServiceServlet implements GttService
    static String dbName = "gtt";
    static String driver = "com.mysql.jdbc.Driver";
    static String userName = "root";
-   static String pasword = "8pv2y2n8";
+   static String pasword = "password";
    static String tramCoFile = "tram.txt";
    static String busCoFile = "bus.txt";
    static DBconnector connector = new DBconnector(driver, dbhost, dbName,
