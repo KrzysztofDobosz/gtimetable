@@ -66,7 +66,7 @@ public interface GttService extends RemoteService
 
    public HashMap<Integer, ArrayList<Double>> getAllCoordinates();
 
-   public HashMap<ArrayList<ArrayList<ArrayList<Integer>>>, HashMap<Integer, String>> findCourse(
-         boolean normal, boolean fast, boolean night, double xLat, double xLng,
-         double yLat, double yLng, int amount, int cx, int cy);
+   public ArrayList<ArrayList<ArrayList<Integer>>> findCourse(boolean normal,
+         boolean fast, boolean night, double xLat, double xLng, double yLat,
+         double yLng, int amount, int cx, int cy);
 }
